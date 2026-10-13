@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>聊天记录查看器</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img src="/icon.svg" alt=""><div><h1>聊天记录</h1><span id="totalLabel">正在读取…</span></div></div>
+    <form id="searchForm" class="searchbar">
+      <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg>
+      <input id="searchInput" type="search" placeholder="搜索以前说过的话…" maxlength="500" autocomplete="off" aria-label="搜索聊天记录">
+      <select id="searchScope" aria-label="搜索范围"><option value="all">全部聊天</option><option value="current">当前会话</option></select>
+      <button class="primary" type="submit">搜索</button>
+    </form>
+    <button id="refreshBtn" class="quiet" title="重新读取最新记录">刷新</button>
+  </header>
+  <main class="workspace">
+    <aside class="sidebar">
+      <div id="conversationHead" class="sidehead">
+        <div class="side-title">历史会话 <span id="conversationCount"></span></div>
+        <div class="tabs" id="kindTabs"><button data-kind="all" class="active">全部</button><button data-kind="aion">Aion</button><button data-kind="connor">Connor</button><button data-kind="group">群聊</button></div>
+      </div>
+      <div id="searchHead" class="sidehead" hidden><button id="backBtn" class="back">← 返回会话列表</button><div class="side-title" id="searchLabel">搜索结果</div><p class="subtle">点一条原话，查看当时的完整对话</p></div>
+      <div id="conversationList" class="side-list"></div>
+      <div id="searchResults" class="side-list" hidden></div>
+      <div class="sidefoot"><span class="status-dot"></span>直接读取本机聊天记录</div>
+    </aside>
+    <section class="reader">
+      <header class="reader-head"><div><span id="readerKind" class="kind-label">原始记录</span><h2 id="readerTitle">选择一个会话</h2><div id="readerMeta" class="subtle">从左侧选择，或搜索一句以前说过的话</div></div><div class="reader-actions"><button id="firstBtn" disabled>最早</button><button id="latestBtn" disabled>最新</button></div></header>
+      <div id="messages" class="messages" aria-label="聊天内容" aria-busy="false"><div class="welcome"><img src="/icon.svg" alt=""><h3>把过去的对话，慢慢翻回来</h3><p>完整浏览 · 关键词搜索 · 原话与上下文</p></div></div>
+      <footer class="reader-foot"><span id="rangeLabel">记录按时间排列</span><span>Ctrl + F 搜索记录</span></footer>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <dialog id="imageDialog"><button id="closeImageBtn" aria-label="关闭图片">×</button><img id="largeImage" alt="聊天图片"></dialog>
+</body>
+</html>

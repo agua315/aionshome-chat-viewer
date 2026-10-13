@@ -1,0 +1,11 @@
+runtime/
+# 每台电脑的数据位置和运行状态只保留在本机。
+config.json
+node_modules/
+*.log
+*.db
+*.db-*
+*.sqlite*
+*.lnk
+backups/
+.DS_Store

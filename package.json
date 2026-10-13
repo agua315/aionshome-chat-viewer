@@ -1,0 +1,17 @@
+{
+  "name": "aionshome-chat-viewer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "独立浏览和搜索 AionsHome 聊天记录的 Windows 小工具",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node app.js --open",
+    "test": "node verify.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agua315/aionshome-chat-viewer.git"
+  }
+}
