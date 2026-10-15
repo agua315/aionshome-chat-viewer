@@ -1,4 +1,16 @@
 {
   "dataDirectory": "D:/AionsHome/aion-chat/data",
-  "port": 4328
+  "port": 4328,
+  "phoneAccess": { "enabled": true },
+  "backupDirectory": "",
+  "backupEnabled": true,
+  "displaySettings": {
+    "mode": "plain",
+    "userSide": "right",
+    "showUserName": true,
+    "showUserAvatar": true,
+    "showCharacterAvatar": true,
+    "hideSystemMessages": false,
+    "collapseMonitorScreenshots": true
+  }
 }

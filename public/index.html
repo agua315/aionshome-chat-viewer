@@ -6,24 +6,43 @@
   <title>聊天记录查看器</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/mobile.css">
+  <link rel="stylesheet" href="/theater.css">
+  <link rel="stylesheet" href="/appearance.css">
+  <link rel="stylesheet" href="/export.css">
+  <link rel="stylesheet" href="/cards.css">
+  <script src="/vendor/markdown-it-15.0.1.min.js" defer></script>
+  <script src="/markdown.js" defer></script>
+  <script src="/message-display.js" defer></script>
+  <script src="/appearance-config.js" defer></script>
+  <script src="/appearance.js" defer></script>
+  <script src="/export.js" defer></script>
+  <script src="/cards-mosaic.js" defer></script>
+  <script src="/cards-layout.js" defer></script>
+  <script src="/cards-renderer.js" defer></script>
+  <script src="/cards-mosaic-ui.js" defer></script>
+  <script src="/cards.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
   <header class="topbar">
+    <button id="sidebarBtn" class="sidebar-button" aria-label="打开会话和搜索结果" aria-expanded="false" aria-controls="sidebar">☰</button>
     <div class="brand"><img src="/icon.svg" alt=""><div><h1>聊天记录</h1><span id="totalLabel">正在读取…</span></div></div>
     <form id="searchForm" class="searchbar">
       <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg>
       <input id="searchInput" type="search" placeholder="搜索以前说过的话…" maxlength="500" autocomplete="off" aria-label="搜索聊天记录">
-      <select id="searchScope" aria-label="搜索范围"><option value="all">全部聊天</option><option value="current">当前会话</option></select>
+      <select id="searchScope" aria-label="搜索范围"><option value="all">全部记录</option><option value="current">当前会话</option><option value="theater">小剧场正文</option></select>
       <button class="primary" type="submit">搜索</button>
     </form>
-    <button id="refreshBtn" class="quiet" title="重新读取最新记录">刷新</button>
+    <div class="toolbar-actions"><button id="quoteCardBtn" class="quiet">摘句卡</button><button id="exportBtn" class="quiet">导出</button><button id="phoneAccessBtn" class="quiet" hidden>手机访问</button><button id="appearanceSettingsBtn" class="quiet">外观设置</button><button id="displaySettingsBtn" class="quiet">显示设置</button><button id="archiveSettingsBtn" class="quiet">存档设置</button><button id="refreshBtn" class="quiet" title="重新读取最新记录">刷新</button><button id="logoutBtn" class="quiet" hidden>退出</button></div>
   </header>
   <main class="workspace">
-    <aside class="sidebar">
+    <button id="sidebarShade" class="sidebar-shade" aria-label="关闭会话列表" hidden></button>
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-mobile-head"><span>会话与搜索</span><button id="closeSidebarBtn" class="quiet" aria-label="关闭会话列表">×</button></div>
       <div id="conversationHead" class="sidehead">
         <div class="side-title">历史会话 <span id="conversationCount"></span></div>
-        <div class="tabs" id="kindTabs"><button data-kind="all" class="active">全部</button><button data-kind="aion">Aion</button><button data-kind="connor">Connor</button><button data-kind="group">群聊</button></div>
+        <div class="tabs" id="kindTabs"><button data-kind="all" class="active">全部</button><button data-kind="aion">Aion</button><button data-kind="connor">Connor</button><button data-kind="group">群聊</button><button data-kind="theater">小剧场</button></div>
       </div>
       <div id="searchHead" class="sidehead" hidden><button id="backBtn" class="back">← 返回会话列表</button><div class="side-title" id="searchLabel">搜索结果</div><p class="subtle">点一条原话，查看当时的完整对话</p></div>
       <div id="conversationList" class="side-list"></div>
@@ -31,12 +50,179 @@
       <div class="sidefoot"><span class="status-dot"></span>直接读取本机聊天记录</div>
     </aside>
     <section class="reader">
-      <header class="reader-head"><div><span id="readerKind" class="kind-label">原始记录</span><h2 id="readerTitle">选择一个会话</h2><div id="readerMeta" class="subtle">从左侧选择，或搜索一句以前说过的话</div></div><div class="reader-actions"><button id="firstBtn" disabled>最早</button><button id="latestBtn" disabled>最新</button></div></header>
+      <header class="reader-head"><div><span id="readerKind" class="kind-label">原始记录</span><h2 id="readerTitle">选择一个会话</h2><div id="readerMeta" class="subtle">从左侧选择，或搜索一句以前说过的话</div></div><div class="reader-actions"><button id="selectMessagesBtn" aria-pressed="false">选择消息</button><button id="firstBtn" disabled>最早</button><button id="latestBtn" disabled>最新</button></div></header>
+      <div id="exportSelectionBar" class="export-selection-bar" hidden><span id="exportSelectionCount">已选 0 条</span><button id="selectVisibleBtn">全选已加载消息</button><button id="clearExportSelectionBtn">清空</button><button id="makeSelectedCardBtn" class="primary">制作摘句卡</button><button id="exportSelectedBtn">导出所选</button><button id="endExportSelectionBtn" class="quiet">完成选择</button></div>
+      <nav id="chapterNavigation" class="chapter-navigation" aria-label="小剧场章节导航" hidden>
+        <label for="chapterSelect">章节</label>
+        <select id="chapterSelect" aria-label="选择章节阅读" disabled><option value="">正在读取目录…</option></select>
+        <button id="previousChapterBtn" disabled>上一章</button><button id="nextChapterBtn" disabled>下一章</button>
+      </nav>
       <div id="messages" class="messages" aria-label="聊天内容" aria-busy="false"><div class="welcome"><img src="/icon.svg" alt=""><h3>把过去的对话，慢慢翻回来</h3><p>完整浏览 · 关键词搜索 · 原话与上下文</p></div></div>
       <footer class="reader-foot"><span id="rangeLabel">记录按时间排列</span><span>Ctrl + F 搜索记录</span></footer>
     </section>
   </main>
   <div id="toast" class="toast" role="status" hidden></div>
+  <button id="cardSelectionFloat" class="card-selection-float" hidden>✦ 用选中文字做卡</button>
+  <dialog id="cardDialog" class="card-dialog" aria-labelledby="cardDialogTitle">
+    <header class="card-dialog-head"><div><h3 id="cardDialogTitle">把喜欢的话，留在一张卡片里</h3><p>挑几句 · 换个样子 · 存成一张长图</p></div><button id="closeCardBtn" class="quiet" aria-label="关闭摘句卡">×</button></header>
+    <div class="card-workspace">
+      <section class="card-editor" aria-label="编辑摘句卡">
+        <div class="card-tabs" role="tablist" aria-label="卡片编辑"><button id="cardContentTab" role="tab" aria-selected="true" aria-controls="cardContentPanel">摘句内容</button><button id="cardStyleTab" role="tab" aria-selected="false" aria-controls="cardStylePanel">卡片美化</button><button id="cardMaskTab" role="tab" aria-selected="false" aria-controls="cardMaskPanel">分享遮挡</button></div>
+        <div class="card-editor-scroll">
+          <section id="cardContentPanel" role="tabpanel" aria-labelledby="cardContentTab">
+            <div class="card-section-label"><label for="cardText">卡片上的文字</label><div><button class="card-mask-add" data-field="text" aria-label="遮挡正文所选文字">遮挡所选</button><span id="cardTextCount">0 字</span></div></div>
+            <textarea id="cardText" placeholder="选几句舍不得忘记的话，也可以直接写在这里…" spellcheck="false" maxlength="50000"></textarea>
+            <p class="card-help">可改字、删句、调整换行；只影响图片。长内容生成一张长图。[心里嘀咕：…] 会自动显示为独立颜色的斜体，图片中不显示标记。</p>
+            <div class="card-import-actions"><button id="cardImportSelectedBtn">加入勾选消息</button><button id="cardGoSelectBtn">去选择消息</button></div>
+            <details id="cardSourceDetails" class="card-source-details" hidden><summary>从原文挑几句话 <span id="cardSourceCount"></span></summary><p class="card-help">勾选喜欢的句子，再点“加入卡片”。原文顺序会保留。</p><div id="cardSourceList" class="card-source-list"></div><div class="card-source-actions"><button id="cardAddSentencesBtn" class="primary">加入勾选句子</button><button id="cardAddAllSourceBtn">全文加入</button></div></details>
+            <label for="cardTitle">标题 <span class="card-help">可留空</span><button class="card-mask-add" data-field="title" aria-label="遮挡标题所选文字">遮挡所选</button></label><input id="cardTitle" type="text" maxlength="180" placeholder="例如：一些舍不得忘记的话">
+            <label for="cardSignature">落款 / 来源 <span class="card-help">可以自己改</span><button class="card-mask-add" data-field="signature" aria-label="遮挡落款所选文字">遮挡所选</button></label><input id="cardSignature" type="text" maxlength="300" placeholder="角色名字、故事名，或你想写的一句话">
+            <div class="card-check-row"><label><input id="cardShowSignature" type="checkbox" checked>显示落款</label><label><input id="cardShowDate" type="checkbox">显示日期</label><label><input id="cardShowMark" type="checkbox">显示小标记</label></div>
+          </section>
+          <section id="cardMaskPanel" role="tabpanel" aria-labelledby="cardMaskTab" hidden>
+            <label class="card-mask-toggle"><input id="cardMaskEnabled" type="checkbox" checked>启用分享遮挡</label>
+            <p class="card-help">只作用于分享图片，编辑框保留原文。正文、标题和落款都支持。</p>
+            <div class="card-section-label"><span id="cardMaskManualCount">0 处手动选择</span><button id="cardMaskClearManualBtn">清空手动</button></div>
+            <div id="cardMaskManualList" class="card-mask-manual-list"></div><button id="cardMaskGoContentBtn">去输入框选字遮挡</button>
+            <label for="cardMaskKeywords">批量遮挡的字词</label><textarea id="cardMaskKeywords" maxlength="5000" spellcheck="false" placeholder="每行一个，例如：&#10;张三&#10;13800001234"></textarea>
+            <p class="card-help">所有出现的位置都会匹配，包括标题、落款和独白。不把输入当作正则表达式。</p>
+            <label class="card-mask-toggle"><input id="cardMaskIgnoreCase" type="checkbox" checked>忽略英文字母大小写</label>
+            <div class="card-style-grid card-section-break"><div><label for="cardMaskKind">遮挡样式</label><select id="cardMaskKind"><option value="pixel">方块马赛克</option><option value="solid">纯色遮挡条</option><option value="frost">磨砂遮挡</option><option value="stripe">斜线遮挡</option><option value="text">自定义文字替换</option><option value="pattern">图案 / 表情替换</option><option value="image">自选图片替换</option></select></div><div class="card-mask-color"><label for="cardMaskColor">遮挡 / 替代字颜色</label><input id="cardMaskColor" type="color"></div></div>
+            <div id="cardMaskSizeField" class="card-slider-row"><label for="cardMaskSize">方块 / 斜线大小 <output id="cardMaskSizeValue"></output></label><input id="cardMaskSize" type="range" min="4" max="24" step="1"></div>
+            <div id="cardMaskTextField" hidden><label for="cardMaskReplacement">每处替换成这段文字</label><input id="cardMaskReplacement" type="text" maxlength="120" placeholder="某人 / 已隐藏 / 自己想写的话"></div>
+            <div id="cardMaskPatternField" hidden><label for="cardMaskPattern">自定义图案或表情</label><input id="cardMaskPattern" type="text" maxlength="32" placeholder="✦、♥、🌸…"><div class="card-slider-row"><label for="cardMaskPatternCount">每处重复几个 <output id="cardMaskPatternCountValue"></output></label><input id="cardMaskPatternCount" type="range" min="1" max="8" step="1"></div></div>
+            <div id="cardMaskImageField" hidden><label>用自己的图片替换</label><div class="card-image-actions"><button id="cardMaskUploadImageBtn">选择遮挡图片</button><button id="cardMaskRemoveImageBtn">移除遮挡图片</button></div><p id="cardMaskImageNote" class="card-help"></p><input id="cardMaskImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" hidden><div class="card-slider-row"><label for="cardMaskImageSize">图片宽度 <output id="cardMaskImageSizeValue"></output></label><input id="cardMaskImageSize" type="range" min="0.7" max="4" step="0.1"></div></div>
+            <p class="card-help">色块保留原文字占位；文字、图案、图片按替代后的宽度重新排版。遮挡区域不会绘制原字。</p>
+            <div id="cardMaskStats" class="card-mask-stats" role="status"></div><button id="cardMaskClearAllBtn" class="quiet">清空全部遮挡</button>
+            <p class="card-help">只记住遮挡样式；手动范围和批量字词跟随本次卡片，刷新后不保留。</p>
+          </section>
+          <section id="cardStylePanel" role="tabpanel" aria-labelledby="cardStyleTab" hidden>
+            <div class="card-section-label"><span>挑一套搭配</span><span>文字保持不变</span></div><div id="cardTemplates" class="card-template-grid"></div>
+            <div class="card-style-grid"><div><label for="cardFont">字体</label><select id="cardFont"><option value="sans">清晰黑体</option><option value="serif">书页宋体</option><option value="kai">温柔楷体</option></select></div><div><label for="cardAlign">文字对齐</label><select id="cardAlign"><option value="left">左对齐</option><option value="center">居中</option><option value="right">右对齐</option></select></div></div>
+            <div class="card-slider-row"><label for="cardFontSize">字号 <output id="cardFontSizeValue"></output></label><input id="cardFontSize" type="range" min="22" max="62" step="1"></div>
+            <div class="card-slider-row"><label for="cardLineHeight">行距 <output id="cardLineHeightValue"></output></label><input id="cardLineHeight" type="range" min="1.35" max="2.5" step="0.05"></div>
+            <div class="card-slider-row"><label for="cardPadding">留白 <output id="cardPaddingValue"></output></label><input id="cardPadding" type="range" min="45" max="130" step="1"></div>
+            <div class="card-color-grid"><label for="cardBackground">底色<input id="cardBackground" type="color"></label><label for="cardTextColor">文字<input id="cardTextColor" type="color"></label><label for="cardThoughtColor">独白颜色<input id="cardThoughtColor" type="color"></label><label for="cardAccent">点缀<input id="cardAccent" type="color"></label></div>
+            <div class="card-section-label card-section-break"><span>自己的配图</span><span id="cardImageState">使用模板画面</span></div>
+            <div class="card-image-actions"><button id="cardUploadImageBtn">选择图片</button><button id="cardUseChatBackgroundBtn">用聊天背景</button><button id="cardRemoveImageBtn">移除图片</button></div><input id="cardImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" hidden>
+            <label for="cardImageMode">配图位置</label><select id="cardImageMode"><option value="top">封面在上，摘句在下</option><option value="full">铺在整张卡片背景</option></select>
+            <div id="cardCoverHeightField" class="card-slider-row"><label for="cardCoverHeight">封面高度 <output id="cardCoverHeightValue"></output></label><input id="cardCoverHeight" type="range" min="300" max="1000" step="10"></div>
+            <div id="cardImageOpacityField" class="card-slider-row"><label for="cardImageOpacity">背景图片清晰度 <output id="cardImageOpacityValue"></output></label><input id="cardImageOpacity" type="range" min="0" max="100" step="1"></div>
+            <div class="card-style-grid card-section-break"><div><label for="cardWidth">图片宽度</label><select id="cardWidth"><option value="900">900 像素</option><option value="1080">1080 像素</option><option value="1440">1440 像素</option></select></div><div><label for="cardFormat">保存格式</label><select id="cardFormat"><option value="png">PNG · 清晰文字</option><option value="jpg">JPG · 文件更小</option></select></div></div>
+            <label for="cardMinRatio">最短画幅 <span class="card-help">文字多时自动延长</span></label><select id="cardMinRatio"><option value="auto">随内容适配</option><option value="square">方形起步</option><option value="portrait">竖版 3:4 起步</option><option value="story">竖版 9:16 起步</option></select>
+            <p class="card-help">样式会自动记住在当前浏览器。配图只保存在这台电脑，登录后的手机也可读取。</p>
+          </section>
+        </div>
+      </section>
+      <section class="card-preview" aria-label="卡片预览"><div class="card-preview-top"><span>实时预览</span><label><input id="cardPreviewActual" type="checkbox">展开长图</label></div><div id="cardPreviewStage" class="card-preview-stage"><canvas id="cardCanvas" aria-label="生成的摘句卡片"></canvas></div><p id="cardDimensions" class="card-dimensions" role="status"></p></section>
+    </div>
+    <footer class="card-dialog-foot"><p id="cardStatus" role="status">图片保存在当前设备，不会自动分享。</p><button id="cardResetStyleBtn" class="quiet">还原这套模板</button><button id="cardSaveBtn" class="primary">保存图片</button></footer>
+  </dialog>
+  <dialog id="exportDialog" class="edit-dialog export-dialog">
+    <form id="exportForm">
+      <div class="edit-head"><div><h3>导出聊天与故事</h3><p class="subtle">留一份可以随时翻开的记录</p></div><button id="closeExportBtn" type="button" class="quiet" aria-label="关闭导出">×</button></div>
+      <label for="exportScope">导出什么</label>
+      <select id="exportScope"><option value="conversation">一整个聊天窗口</option><option value="selected">勾选的消息 / 章节</option><option value="search">当前搜索 · 所有命中消息</option><option value="searchConversations">当前搜索 · 命中所在的完整会话</option><option value="theater">小剧场 · 整本或选章</option></select>
+      <div id="exportConversationField"><label for="exportConversation">选择会话</label><select id="exportConversation"></select></div>
+      <div id="exportTheaterField" hidden><label for="exportTheater">选择故事</label><select id="exportTheater"></select><label class="display-toggle"><input id="exportSelectedChapters" type="checkbox">只导出勾选章节</label><div id="exportChapterList" class="export-chapter-list" hidden></div></div>
+      <div id="exportSelectedField" class="export-scope-note" hidden><span id="exportSelectedNote"></span><button id="pickExportMessagesBtn" type="button">去勾选消息 / 章节</button><p class="subtle">可翻页或切换会话继续选择；“全选已加载消息”只选择当前已读入的内容。</p></div>
+      <p id="exportSearchNote" class="export-scope-note" hidden></p>
+      <label for="exportFormat">文件格式</label>
+      <select id="exportFormat"><option value="txt">TXT · 纯文本（.txt）</option><option value="docx">Word · 可编辑文档（.docx）</option><option value="pptx">PowerPoint · 分页幻灯片（.pptx）</option><option value="epub">EPUB · 电子书（.epub）</option><option value="pdf">PDF · 排版文档（.pdf）</option></select>
+      <p id="exportFormatHelp" class="subtle export-format-help"></p>
+      <details class="export-options"><summary>内容选项</summary><div>
+        <label class="display-toggle"><input id="exportIncludeSystem" type="checkbox">包含系统消息</label>
+        <p id="exportSystemNote" class="subtle" hidden>勾选消息模式按你手动选择的消息导出，不再过滤系统消息。</p>
+        <label class="display-toggle"><input id="exportIncludeImages" type="checkbox" checked>包含普通图片和小剧场插图</label>
+        <label class="display-toggle"><input id="exportIncludeMonitor" type="checkbox">同时包含监控截图</label>
+        <label class="display-toggle"><input id="exportIncludeReasoning" type="checkbox">包含思考内容</label>
+        <label class="display-toggle"><input id="exportIncludeTime" type="checkbox" checked>显示聊天时间</label>
+      </div></details>
+      <div id="exportPreview" class="export-preview" role="status">正在统计…</div>
+      <p id="exportError" class="edit-error" role="alert" hidden></p>
+      <div class="edit-actions"><button id="cancelExportBtn" type="button">关闭</button><button id="downloadExportBtn" type="submit" class="primary">生成并下载</button></div>
+      <p class="subtle export-download-note">下载到当前设备的浏览器下载目录。电脑与手机均可使用；导出不会修改原记录。</p>
+    </form>
+  </dialog>
   <dialog id="imageDialog"><button id="closeImageBtn" aria-label="关闭图片">×</button><img id="largeImage" alt="聊天图片"></dialog>
+  <dialog id="editDialog" class="edit-dialog">
+    <form id="editForm">
+      <div class="edit-head"><div><h3>编辑聊天记录</h3><p id="editMeta" class="subtle"></p></div><button id="closeEditBtn" type="button" class="quiet" aria-label="关闭编辑">×</button></div>
+      <label for="editContent">消息正文</label>
+      <textarea id="editContent" spellcheck="false" required></textarea>
+      <p id="editArchiveNote" class="edit-note">保存后更新原聊天记录。</p>
+      <p id="editError" class="edit-error" role="alert" hidden></p>
+      <div class="edit-actions"><button id="cancelEditBtn" type="button">取消</button><button id="saveEditBtn" type="submit" class="primary">保存修改</button></div>
+    </form>
+  </dialog>
+  <dialog id="archiveDialog" class="edit-dialog archive-dialog">
+    <form id="archiveForm">
+      <div class="edit-head"><div><h3>原文存档设置</h3><p class="subtle">选择编辑前是否保留原文，以及保存位置</p></div><button id="closeArchiveBtn" type="button" class="quiet" aria-label="关闭存档设置">×</button></div>
+      <label class="archive-toggle"><input id="archiveEnabled" type="checkbox">编辑前存档原文</label>
+      <label for="archiveDirectory">存档文件夹</label>
+      <div class="archive-path-row"><input id="archiveDirectory" type="text" autocomplete="off" placeholder="留空使用自己的文档目录"><button id="chooseArchiveFolderBtn" type="button">选择文件夹</button></div>
+      <p class="edit-note">文件夹不存在时自动创建。关闭存档后不生成新的原文文件，已有存档保留。</p>
+      <p id="archiveError" class="edit-error" role="alert" hidden></p>
+      <div class="edit-actions"><button id="cancelArchiveBtn" type="button">取消</button><button id="saveArchiveBtn" type="submit" class="primary">保存设置</button></div>
+    </form>
+  </dialog>
+  <dialog id="displayDialog" class="edit-dialog display-dialog">
+    <form id="displayForm">
+      <div class="edit-head"><div><h3>显示设置</h3><p class="subtle">按自己习惯的方式读聊天记录</p></div><button id="closeDisplayBtn" type="button" class="quiet" aria-label="关闭显示设置">×</button></div>
+      <div class="display-fields">
+        <div><label for="displayMode">阅读样式</label><select id="displayMode"><option value="plain">聊天气泡（原文）</option><option value="markdown">聊天气泡（Markdown）</option><option value="novel">小说阅读（Markdown）</option></select></div>
+        <div><label for="userSide">你的发言位置</label><select id="userSide"><option value="right">右边</option><option value="left">左边</option></select></div>
+      </div>
+      <label class="display-toggle"><input id="showUserName" type="checkbox">显示你的名字</label>
+      <label class="display-toggle"><input id="showUserAvatar" type="checkbox">显示你的头像</label>
+      <label class="display-toggle"><input id="showCharacterAvatar" type="checkbox">显示角色的头像</label>
+      <div class="display-section">
+        <label class="display-toggle"><input id="hideSystemMessages" type="checkbox">隐藏系统消息</label>
+        <p class="display-help">隐藏查看监控、查看动态等系统提示和后台监控记录；搜索也会过滤。</p>
+        <label class="display-toggle"><input id="collapseMonitorScreenshots" type="checkbox">默认收起监控截图</label>
+        <p class="display-help">保留系统消息时，截图只显示展开入口，点开后才加载图片。</p>
+      </div>
+      <p class="edit-note">Markdown 会显示加粗、斜体、引用和列表等格式。小说阅读使用更宽的正文和舒展的行距。设置立即生效并自动记住。</p>
+      <p id="displayError" class="edit-error" role="alert" hidden></p>
+      <div class="edit-actions"><button id="cancelDisplayBtn" type="button">取消</button><button id="saveDisplayBtn" type="submit" class="primary">保存设置</button></div>
+    </form>
+  </dialog>
+  <dialog id="appearanceDialog" class="edit-dialog appearance-dialog">
+    <form id="appearanceForm">
+      <div class="appearance-head"><div><h3>把聊天，装成喜欢的样子</h3><p class="subtle">选择搭配套装，也可以写自己的 CSS</p></div><button id="closeAppearanceBtn" type="button" class="quiet" aria-label="关闭外观设置">×</button></div>
+      <div class="appearance-content">
+        <section class="appearance-section"><div class="appearance-section-head"><h4>搭配套装</h4><span id="appearancePreviewStatus" class="subtle">保存后会记住你的选择</span></div><div id="themeCards" class="theme-cards" aria-label="选择外观套装"></div></section>
+        <section class="appearance-section">
+          <div class="appearance-section-head"><h4>聊天背景</h4><span class="subtle">图片保存在电脑上的查看器里，手机也能使用</span></div>
+          <div class="background-settings"><div id="backgroundPreview" class="background-preview"><span id="backgroundPreviewLabel">让喜欢的画面，陪你翻聊天</span></div>
+            <div class="background-controls"><div class="background-buttons"><button id="chooseBackgroundBtn" type="button">选择背景图片</button><button id="removeBackgroundBtn" type="button">移除背景</button></div>
+              <input id="backgroundFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" hidden>
+              <p id="backgroundName" class="subtle">未设置背景图片 · 支持 PNG、JPG、WebP、GIF、AVIF，20 MB 以内</p>
+              <div class="background-fields"><div><label for="backgroundFit">显示方式</label><select id="backgroundFit"><option value="cover">铺满聊天区</option><option value="contain">完整显示</option><option value="tile">重复平铺</option></select></div><div><label for="backgroundOpacity">图片清晰度 <output id="backgroundOpacityLabel">35%</output></label><input id="backgroundOpacity" type="range" min="0" max="100" step="1" value="35"></div></div>
+            </div>
+          </div>
+        </section>
+        <section class="appearance-section">
+          <div class="appearance-section-head"><h4>自定义 CSS</h4><label class="appearance-toggle"><input id="customCssEnabled" type="checkbox">叠加自定义 CSS</label></div>
+          <div class="css-preset-row"><select id="cssPresetSelect" aria-label="CSS 预设"></select><button id="newCssPresetBtn" type="button">新建</button><button id="copyCssPresetBtn" type="button">复制</button><button id="deleteCssPresetBtn" type="button">删除</button></div>
+          <label for="cssPresetName">预设名称</label><input id="cssPresetName" type="text" maxlength="60" autocomplete="off" placeholder="给这套美化起个名字">
+          <div class="css-editor-label"><label for="customCssEditor">CSS 代码 · 模板已标注每一处对应的界面</label><button id="restoreCssTemplateBtn" class="quiet" type="button">填入标准模板</button></div>
+          <textarea id="customCssEditor" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="cssEditorHelp"></textarea>
+          <p id="cssEditorHelp" class="subtle">可调整按键、气泡、字体、头像、侧栏和特殊消息。编辑后点“预览效果”；切换预设会保留本次修改，点“保存并应用”后才写入配置。</p>
+          <p class="appearance-recovery subtle">美化影响操作时，按 Ctrl + Shift + 0 临时恢复默认显示；手机可在网址末尾加 ?safeAppearance=1。已保存预设会保留。</p>
+        </section>
+        <p id="appearanceError" class="edit-error" role="alert" hidden></p>
+      </div>
+      <div class="appearance-actions"><button id="resetAppearanceBtn" type="button" class="quiet">恢复默认显示</button><div><button id="cancelAppearanceBtn" type="button">取消</button><button id="previewAppearanceBtn" type="button">预览效果</button><button id="saveAppearanceBtn" class="primary" type="submit">保存并应用</button></div></div>
+    </form>
+  </dialog>
+  <dialog id="phoneDialog" class="edit-dialog phone-dialog">
+    <div class="edit-head"><div><h3>手机访问</h3><p class="subtle">手机浏览器打开下面的地址，再输入访问码</p></div><button id="closePhoneBtn" type="button" class="quiet" aria-label="关闭手机访问">×</button></div>
+    <label>同一 Wi-Fi</label><div id="wifiAddresses" class="phone-addresses"></div>
+    <label>Tailscale · 不同网络</label><div id="tailscaleAddresses" class="phone-addresses"></div>
+    <label for="phoneCode">访问码</label><div class="phone-code-row"><input id="phoneCode" readonly aria-label="手机访问码"><button id="copyPhoneCodeBtn" type="button">复制访问码</button></div>
+    <p class="edit-note">不同网络下，手机先连接这台电脑所在的 Tailscale 网络。电脑和查看器需要保持运行；不用启动 AionsHome 后端，也不用导入聊天记录。</p>
+    <p class="edit-note">登录后，这个浏览器会记住访问状态。Wi-Fi 地址随电脑网络变化，连不上时在这里查看最新地址。</p>
+  </dialog>
 </body>
 </html>

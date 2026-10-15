@@ -1,0 +1,19 @@
+/* 小屏幕使用会话抽屉，正文保留整屏宽度；桌面继续使用左右两栏。 */
+@media(max-width:700px){
+  body:not(.login-page){display:flex;flex-direction:column;height:100vh;height:100dvh}
+  .topbar{height:auto;min-height:100px;flex-shrink:0;padding:10px 12px;gap:7px;flex-wrap:wrap}
+  .sidebar-button{display:block;flex-shrink:0;width:32px;height:34px;padding:0;font-size:18px;color:var(--green);background:#edf3e7;border:0}
+  .brand{flex:1;min-width:85px;width:auto;gap:7px}.brand img{width:25px;height:25px}.brand h1{font-size:14px;margin:0;letter-spacing:0}.brand span{display:none}
+  .toolbar-actions{margin:0;gap:0}.toolbar-actions .quiet{padding:7px 4px;font-size:11px;min-height:34px}
+  .searchbar{order:3;flex-basis:100%;max-width:none;padding:3px 5px 3px 10px;gap:5px}.searchbar input{font-size:14px}.searchbar select{font-size:11px;padding:5px;max-width:83px}.searchbar .primary{padding:8px 11px}
+  .workspace{position:relative;height:auto;width:100%;min-height:0;flex:1;margin:0;overflow:hidden}
+  .sidebar{position:absolute;inset:0 auto 0 0;width:min(320px,87vw);z-index:30;transform:translateX(-102%);visibility:hidden;pointer-events:none;transition:transform .18s,visibility .18s;border-right:0;box-shadow:6px 0 30px #25332e22}
+  .sidebar-open .sidebar{transform:translateX(0);visibility:visible;pointer-events:auto}
+  .sidebar-shade{display:block;position:absolute;inset:0;width:100%;height:100%;background:#25332e66;z-index:20;border:0;border-radius:0;padding:0}.sidebar-shade:hover{background:#25332e66}
+  .sidebar-mobile-head{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--line);font-size:14px;font-weight:600}.sidebar-mobile-head button{font-size:24px;padding:0 7px;margin:0}
+  .sidehead{padding:18px 18px 12px}.side-list{padding:0 12px 15px}.conversation,.result{padding:13px 12px}.conversation-title{font-size:14px}.conversation .meta{display:flex}.conversation .meta span{display:inline}.tabs{flex-wrap:nowrap}.tabs button{flex-basis:auto}.result .excerpt{font-size:13px}.sidefoot{padding:14px 18px;font-size:11px}
+  .reader{width:100%;min-height:0}.reader-head{padding:12px 16px;gap:10px;align-items:center}.reader-head h2{font-size:16px;margin-top:3px}.reader-head .subtle{font-size:11px;line-height:1.6}.reader-actions{flex-direction:row;gap:5px}.reader-actions button{padding:7px 9px;font-size:12px}
+  .messages{padding:12px 16px;scrollbar-gutter:auto}.message{gap:9px;margin-bottom:23px}.avatar{width:26px;height:26px}.message-body{max-width:100%;min-width:0}.bubble{font-size:15px;line-height:1.9;padding:12px 14px}.message-meta{flex-wrap:wrap;gap:8px;font-size:10px}.edit-message{font-size:11px;padding:3px 6px}.messages[data-mode="novel"] .bubble{font-size:17px;line-height:2}.messages[data-mode="novel"] .message{margin-bottom:26px}.messages[data-mode="novel"] .user-right .message-body{width:92%}
+  .reader-foot{padding:10px 15px;font-size:10px}.reader-foot span:last-child{display:none}.reader-foot span{overflow-wrap:anywhere}
+  .edit-dialog{padding:21px 20px;width:94vw;max-height:92vh;max-height:92dvh}.edit-head{gap:12px;margin-bottom:18px}.edit-head h3{font-size:17px}.edit-dialog textarea{height:40vh;min-height:150px}.display-fields{grid-template-columns:1fr;gap:13px}.edit-dialog button{font-size:13px;padding:8px 12px}.phone-address-row{gap:8px;padding:10px}.phone-address-row a{font-size:12px}.phone-address-row button{font-size:11px;padding:7px}.phone-code-row{gap:8px}.phone-code-row input{font-size:20px;letter-spacing:3px}
+}

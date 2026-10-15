@@ -1,0 +1,35 @@
+/* 导出面板和消息勾选沿用主题变量；不改变原来的气泡与小说正文布局。 */
+.export-dialog { width: min(620px, calc(100vw - 24px)); max-height: calc(100dvh - 28px); overflow: auto; }
+.export-dialog select { width: 100%; margin: 5px 0 12px; }
+.export-dialog label { margin-top: 10px; }
+.export-dialog .display-toggle { margin: 10px 0; }
+.export-dialog .edit-head { margin-bottom: 18px; }
+.export-dialog .edit-head h3 { margin: 0; }
+.export-format-help, .export-download-note { font-size: 12px; line-height: 1.6; margin: 0 0 13px; }
+.export-download-note { margin: 12px 0 0; }
+.export-scope-note { border: 1px solid var(--line, #dce3da); padding: 12px; border-radius: 10px; font-size: 13px; line-height: 1.6; margin: 8px 0 14px; }
+.export-scope-note button { margin-left: 12px; }
+.export-scope-note p { margin: 8px 0 0; }
+.export-options { border-top: 1px solid var(--line, #dce3da); padding: 12px 0; }
+.export-options summary { cursor: pointer; font-size: 13px; color: var(--muted, #6a756e); }
+.export-options > div { padding: 4px 0; }
+.export-preview { background: var(--soft, #eff4eb); border: 1px solid var(--line, #dce3da); border-radius: 11px; padding: 12px 14px; line-height: 1.7; font-size: 13px; margin: 3px 0 15px; white-space: pre-line; overflow-wrap: anywhere; }
+.export-chapter-list { max-height: 200px; overflow: auto; padding: 4px 10px; border: 1px solid var(--line, #dce3da); border-radius: 8px; margin-bottom: 12px; }
+.export-chapter-list label { display: flex; gap: 9px; align-items: flex-start; margin: 10px 0; font-size: 13px; }
+.export-chapter-list input { flex: 0 0 auto; margin-top: 3px; }
+.export-selection-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding: 10px 23px; border-bottom: 1px solid var(--line, #dce3da); background: var(--soft, #eff4eb); }
+.export-selection-bar[hidden], .export-dialog [hidden] { display: none !important; }
+.export-selection-bar > span { font-size: 13px; margin-right: auto; }
+.export-selection-bar button { padding: 5px 9px; font-size: 12px; }
+.message-export-check { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: normal; cursor: pointer; flex: 0 0 auto; color: var(--muted, #6a756e); margin-right: 7px; }
+.message-export-check input { margin: 0; width: 17px; height: 17px; accent-color: var(--green, #527b61); cursor: pointer; }
+.is-export-selected > .message-body { outline: 2px solid var(--green, #527b61); outline-offset: 5px; border-radius: 7px; }
+.theater-chapter .message-export-check { vertical-align: middle; }
+@media (max-width: 700px) {
+  .export-dialog { padding: 19px 17px; }
+  .export-selection-bar { padding: 9px 14px; gap: 6px; }
+  .export-selection-bar > span { width: 100%; }
+  .reader-actions { flex-wrap: wrap; }
+  #selectMessagesBtn { font-size: 12px; }
+  .export-scope-note button { margin: 8px 0 0; display: block; }
+}

@@ -1,0 +1,79 @@
+/* 主题颜色集中在变量里；用户 CSS 最后加载，可以在其上继续覆盖。 */
+:root{--ui-panel:#f8f9f3;--ui-chat-bg:#fffefa;--ui-char-bubble:#f3f5ee;--ui-user-bubble:#e6eee0;--ui-hover:#edf2e8;--ui-input:#f9faf5;--ui-accent-ink:#fff;--ui-thought-bg:#f3eff8;--ui-thought-ink:#776486;--ui-watch-bg:#eef5ef;--ui-watch-ink:#557761;--ui-pat-bg:#fbf4ea;--ui-pat-ink:#927052;--ui-mark:#fae8a4;--appearance-image:none;--appearance-veil:transparent;--appearance-fit:cover;--appearance-repeat:no-repeat}
+body{background:var(--soft);color:var(--ink)}
+.topbar,.reader,dialog{background:var(--paper);color:var(--ink)}
+.sidebar{background:var(--ui-panel)}
+.searchbar,.tabs{background:var(--ui-char-bubble);border-color:var(--line)}
+.searchbar input{color:var(--ink)}
+.searchbar select{color:var(--muted)}
+button:hover,.conversation:hover,.result:hover{background:var(--ui-hover)}
+.primary,.searchbar .primary,.edit-dialog .primary{background:var(--green);color:var(--ui-accent-ink)}
+.edit-dialog button{background:var(--ui-input);color:var(--ink)}
+.edit-dialog .primary{background:var(--green);color:var(--ui-accent-ink)}
+.searchbar .primary,.edit-dialog button{border-radius:var(--custom-button-radius,8px)}
+.quiet,.back,.tag,.kind-label,.message-meta strong{color:var(--green)}
+.tabs .active{background:var(--paper);color:var(--green)}
+.conversation.active,.result.active{background:var(--ui-user-bubble);border-color:var(--line)}
+.conversation .meta,.result .meta,.subtle,.message-meta,.reader-foot,.boundary,.day,.reasoning,.empty,.loading{color:var(--muted)}
+.day:before,.day:after{background:var(--line)}
+.status-dot{background:var(--green)}
+#messages{background-color:var(--ui-chat-bg);background-image:linear-gradient(var(--appearance-veil),var(--appearance-veil)),var(--appearance-image);background-size:auto,var(--appearance-fit);background-position:center;background-repeat:no-repeat,var(--appearance-repeat);background-attachment:scroll}
+.bubble{background:var(--ui-char-bubble);border-color:var(--line);color:var(--ink)}
+.user .bubble{background:var(--ui-user-bubble);border-color:var(--line)}
+.message.user-right .bubble,.message.user-left .bubble{background:var(--ui-user-bubble);border-color:var(--line)}
+.messages[data-mode="novel"] .bubble,.messages[data-mode="novel"] .user .bubble{background:transparent;border:0;color:var(--ink)}
+.system .bubble{background:var(--ui-panel);color:var(--muted)}
+.avatar,.message.connor .avatar,.message.user .avatar{background:var(--ui-user-bubble);color:var(--green)}
+.inner-thought{background:var(--ui-thought-bg);color:var(--ui-thought-ink);border-color:color-mix(in srgb,var(--ui-thought-ink) 25%,transparent);border-left-color:color-mix(in srgb,var(--ui-thought-ink) 55%,transparent)}
+.thought-label,.inner-thought .thought-text strong{color:var(--ui-thought-ink)}
+.watch-note{background:var(--ui-watch-bg);color:var(--ui-watch-ink);border-color:color-mix(in srgb,var(--ui-watch-ink) 20%,transparent)}
+.watch-note .event-icon-wrap{background:color-mix(in srgb,var(--ui-watch-ink) 12%,var(--ui-watch-bg));color:var(--ui-watch-ink)}
+.watch-note .event-note-label{color:var(--ui-watch-ink)}
+.pat-note{background:var(--ui-pat-bg);color:var(--ui-pat-ink);border-color:color-mix(in srgb,var(--ui-pat-ink) 22%,transparent)}
+.pat-note .event-icon-wrap{background:color-mix(in srgb,var(--ui-pat-ink) 12%,var(--ui-pat-bg));color:var(--ui-pat-ink)}
+.pat-note .event-note-label{color:var(--ui-pat-ink)}
+mark{background:var(--ui-mark);color:var(--ink)}
+.reasoning pre,.bubble pre,.bubble code,.attachment img,.inline-image{background:var(--ui-input);color:var(--ink)}
+.bubble blockquote{border-left-color:var(--line);color:var(--muted)}
+.bubble table,.bubble th,.bubble td{border-color:var(--line)}
+.bubble th,.monitor-screenshot summary,.load-more,.phone-address-row{background:var(--ui-panel);border-color:var(--line);color:var(--muted)}
+.monitor-screenshot summary:hover{background:var(--ui-hover);color:var(--green)}
+.edit-dialog textarea,.edit-dialog input[type="text"],.edit-dialog input[readonly],.edit-dialog select,.phone-code-row input{background:var(--ui-input);border-color:var(--line);color:var(--ink)}
+input,textarea,select{accent-color:var(--green)}
+.chapter-navigation select{background:var(--ui-input);color:var(--ink);border-color:var(--line)}
+.sidebar-button{background:var(--ui-user-bubble);color:var(--green)}
+.toast{background:var(--green);color:var(--ui-accent-ink)}
+/* 外观设置的表单布局：头尾固定，主题、背景和代码区域可以独立滚动。 */
+dialog.appearance-dialog{width:min(1000px,96vw);max-width:96vw;padding:0;max-height:92vh;max-height:92dvh;overflow:hidden;border:1px solid var(--line);border-radius:20px}
+.appearance-dialog form{display:flex;flex-direction:column;max-height:92vh;max-height:92dvh}
+.appearance-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:23px 28px 20px;border-bottom:1px solid var(--line);flex-shrink:0}
+.appearance-head h3{margin:0 0 7px;font-size:20px;letter-spacing:.4px}.appearance-head p{margin:0}
+.appearance-dialog button{position:static;box-shadow:none;font-size:12px;padding:8px 12px}
+.appearance-dialog .appearance-head button{font-size:23px;line-height:1;padding:2px 5px}
+.appearance-content{overflow:auto;min-height:0;padding:0 28px 22px;overscroll-behavior:contain}
+.appearance-section{padding-top:23px;margin-bottom:3px}.appearance-section+.appearance-section{border-top:1px solid var(--line);margin-top:23px}
+.appearance-section-head{display:flex;gap:12px;align-items:center;justify-content:space-between;margin:0 0 14px}
+.appearance-section-head h4{font-size:14px;margin:0;white-space:nowrap;letter-spacing:.5px}.appearance-section-head>.subtle{font-size:11px;text-align:right}
+.theme-cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.appearance-dialog .theme-card{display:flex;flex-direction:column;text-align:left;gap:0;padding:0;overflow:hidden;border:1px solid var(--line);border-radius:13px;background:var(--paper);color:var(--ink)}
+.theme-card[aria-pressed="true"]{outline:2px solid var(--green);outline-offset:2px}
+.theme-sample{position:relative;display:block;width:100%;height:65px;padding:12px}
+.theme-sample:before,.theme-sample:after{content:"";position:absolute;width:54%;height:14px;border-radius:5px;background:var(--sample-bubble);left:12px;top:14px}
+.theme-sample:after{width:42%;background:var(--sample-user);left:auto;right:12px;top:36px}
+.theme-card-title{display:block;padding:11px 10px 4px;font-size:12px;font-weight:600}.theme-card-description{font-size:10px;color:var(--muted);padding:0 10px 11px;line-height:1.6}
+.background-settings{display:flex;gap:18px;align-items:stretch}.background-preview{width:190px;min-height:125px;flex-shrink:0;border:1px dashed var(--line);border-radius:13px;background:linear-gradient(135deg,var(--ui-char-bubble),var(--ui-user-bubble));background-position:center;background-size:cover;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;color:var(--muted);font-size:11px;line-height:1.9}
+.background-preview.has-background{border-style:solid}.background-preview.has-background span{display:none}.background-controls{flex:1;min-width:0}.background-buttons{display:flex;gap:8px;flex-wrap:wrap}.background-controls>p{font-size:11px;overflow-wrap:anywhere;line-height:1.7;margin:10px 0 14px}
+.background-fields{display:grid;grid-template-columns:1fr 1.3fr;gap:18px;align-items:end}.background-fields select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px}.background-fields input[type="range"]{width:100%;margin:5px 0 7px}.background-fields output{float:right;color:var(--green)}
+.appearance-dialog .appearance-toggle{display:flex;align-items:center;gap:7px;margin:0;font-size:12px;color:var(--ink)}.appearance-toggle input{width:16px;height:16px}
+.css-preset-row{display:flex;gap:8px;margin-bottom:16px}.css-preset-row select{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.appearance-dialog #cssPresetName{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:15px;font:inherit}
+.css-editor-label{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:7px}.appearance-dialog .css-editor-label label{margin:0}.appearance-dialog .css-editor-label button{padding:5px 8px;white-space:nowrap;font-size:11px;color:var(--green)}
+.appearance-dialog #customCssEditor{height:320px;min-height:220px;max-height:65vh;tab-size:2;font:12px/1.9 Consolas,"Cascadia Code","Microsoft YaHei",monospace;padding:15px;white-space:pre;overflow:auto;resize:vertical;border-color:var(--line)}
+#cssEditorHelp,.appearance-recovery{font-size:11px;line-height:1.9;margin:10px 0 0}.appearance-recovery{padding:10px 12px;border:1px dashed var(--line);border-radius:9px;background:var(--ui-panel)}
+.appearance-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 28px;border-top:1px solid var(--line);background:var(--paper);flex-shrink:0}.appearance-actions>div{display:flex;gap:8px}.appearance-dialog .appearance-actions .primary{padding:9px 17px}
+#appearanceSettingsBtn{white-space:nowrap}.toolbar-actions{gap:4px}
+@media(max-width:700px){
+  dialog.appearance-dialog{width:96vw;max-width:96vw;border-radius:16px}.appearance-head{padding:18px 16px 15px;gap:12px}.appearance-head h3{font-size:17px}.appearance-head p{font-size:11px}.appearance-content{padding:0 16px 18px}.appearance-section{padding-top:20px}.appearance-section-head{align-items:flex-start;gap:8px}.appearance-section-head>.subtle{max-width:62%;font-size:10px;line-height:1.7}
+  .theme-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.theme-sample{height:58px}.background-settings{flex-direction:column;gap:12px}.background-preview{width:100%;min-height:100px}.background-fields{gap:12px;grid-template-columns:1fr 1.2fr}.css-preset-row{gap:5px}.appearance-dialog .css-preset-row button{padding:7px 8px}.appearance-dialog #customCssEditor{height:270px;font-size:12px}.css-editor-label{align-items:flex-start}.css-editor-label label{line-height:1.7;font-size:11px}
+  .appearance-actions{padding:12px;gap:6px;flex-wrap:wrap}.appearance-actions>div{margin-left:auto;gap:5px}.appearance-dialog .appearance-actions button{padding:8px;font-size:11px}.appearance-dialog .appearance-actions .primary{padding:8px 10px}
+}

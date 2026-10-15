@@ -1,0 +1,12 @@
+/* 小剧场连续阅读使用章节标题，不套用角色头像和对话气泡的宽度。 */
+.theater-chapter .message-body{width:100%;max-width:100%}
+.chapter-heading{font-family:Georgia,"Noto Serif SC","Songti SC",serif;font-size:22px;line-height:1.6;margin:18px 0 24px;color:var(--ink);overflow-wrap:anywhere}
+.messages[data-mode="novel"] .theater-chapter{margin-bottom:60px}
+.tabs button[data-kind="theater"]{white-space:nowrap;min-width:45px}
+.chapter-navigation{display:flex;align-items:center;gap:8px;padding:12px 32px;border-bottom:1px solid var(--line);flex-shrink:0;font-size:12px}
+.chapter-navigation[hidden]{display:none}
+.chapter-navigation label{color:var(--muted);white-space:nowrap}
+.chapter-navigation select{flex:1;min-width:0;max-width:520px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}
+.chapter-navigation button{flex-shrink:0;white-space:nowrap;padding:8px 10px;font-size:12px}
+@media(max-width:700px){.chapter-navigation{padding:10px 16px;gap:6px}.chapter-navigation label{display:none}.chapter-navigation select{font-size:14px}.chapter-navigation button{padding:9px 8px}}
+@media(max-width:700px){.chapter-heading{font-size:20px;margin-top:10px}.messages[data-mode="novel"] .theater-chapter{margin-bottom:40px}}

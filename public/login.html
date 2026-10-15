@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>打开聊天记录</title><link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="/style.css"><script src="/login.js" defer></script></head>
+<body class="login-page">
+  <main class="login-card">
+    <img src="/icon.svg" alt="" class="login-icon"><h1>聊天记录查看器</h1>
+    <p class="subtle">输入电脑上“手机访问”里的访问码</p>
+    <form id="loginForm">
+      <label for="accessCode">访问码</label><input id="accessCode" type="text" inputmode="numeric" autocomplete="off" maxlength="8" pattern="[0-9]{8}" required placeholder="8 位数字">
+      <p id="loginError" class="edit-error" role="alert" hidden></p>
+      <button id="loginBtn" type="submit" class="primary">打开聊天记录</button>
+    </form>
+    <p class="login-note">电脑和查看器需要保持运行。不同网络下，请先连接 Tailscale。</p>
+  </main>
+</body>
+</html>

@@ -1,6 +1,8 @@
 runtime/
+user-data/
 # 每台电脑的数据位置和运行状态只保留在本机。
 config.json
+config.json.tmp
 node_modules/
 *.log
 *.db
