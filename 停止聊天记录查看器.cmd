@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-rem 停止脚本与启动脚本使用相同的 Node.js 环境选择方式。
+rem Select the same Node.js runtime as the startup script.
 set "VIEWER_NODE=%~dp0runtime\node.exe"
 if not exist "%VIEWER_NODE%" (
     where node.exe >nul 2>nul

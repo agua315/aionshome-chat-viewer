@@ -2,7 +2,7 @@
 chcp 65001 >nul
 title 聊天记录查看器 - 关闭本窗口即可停止
 cd /d "%~dp0"
-rem 优先使用本程序的便携环境；源码下载后可以使用系统安装的 Node.js。
+rem Prefer the bundled Node.js runtime; otherwise use the system Node.js.
 set "VIEWER_NODE=%~dp0runtime\node.exe"
 if not exist "%VIEWER_NODE%" (
     where node.exe >nul 2>nul
