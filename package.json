@@ -1,6 +1,7 @@
 {
   "name": "aionshome-chat-viewer",
   "version": "1.0.0",
+  "author": "agua",
   "private": true,
   "description": "独立浏览和搜索 AionsHome 聊天记录的 Windows 小工具",
   "engines": {
