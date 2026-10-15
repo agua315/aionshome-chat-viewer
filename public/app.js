@@ -24,9 +24,34 @@ const speakerName = speaker => ({ user: state.names.user, assistant: state.names
 const mobileScreen = window.matchMedia('(max-width: 700px)');
 
 function setSidebarOpen(open) {
+  if (open && mobileScreen.matches) { setToolbarOpen(false); setMobileSearchOpen(false); }
   document.body.classList.toggle('sidebar-open', open && mobileScreen.matches);
   $('sidebarBtn').setAttribute('aria-expanded', String(open && mobileScreen.matches));
   $('sidebarShade').hidden = !open || !mobileScreen.matches;
+}
+
+// 手机的展开状态只留在当前页面；不写入全局外观配置，避免影响电脑端。
+function setToolbarOpen(open) {
+  const expanded = open && mobileScreen.matches;
+  if (expanded) { setSidebarOpen(false); setMobileSearchOpen(false); }
+  document.body.classList.toggle('toolbar-open', expanded);
+  $('toolbarMenuBtn').setAttribute('aria-expanded', String(expanded));
+}
+
+function setMobileSearchOpen(open) {
+  const expanded = open && mobileScreen.matches;
+  if (expanded) { setToolbarOpen(false); setSidebarOpen(false); }
+  document.body.classList.toggle('mobile-search-open', expanded);
+  $('mobileSearchBtn').setAttribute('aria-expanded', String(expanded));
+  if (open) $('searchInput').focus();
+  else if (document.activeElement === $('searchInput')) $('searchInput').blur();
+}
+
+function setReaderDetailsOpen(open) {
+  const expanded = open && mobileScreen.matches;
+  document.body.classList.toggle('reader-details-open', expanded);
+  $('readerDetailsBtn').setAttribute('aria-expanded', String(expanded));
+  $('readerDetailsBtn').textContent = expanded ? '收起' : '详情';
 }
 
 function node(tag, className, text) {
@@ -860,7 +885,14 @@ $('messages').addEventListener('scroll', () => {
 $('refreshBtn').addEventListener('click', () => refresh());
 $('sidebarBtn').addEventListener('click', () => setSidebarOpen(!document.body.classList.contains('sidebar-open')));
 for (const id of ['sidebarShade', 'closeSidebarBtn']) $(id).addEventListener('click', () => setSidebarOpen(false));
-mobileScreen.addEventListener('change', () => setSidebarOpen(false));
+mobileScreen.addEventListener('change', () => { setSidebarOpen(false); setToolbarOpen(false); setMobileSearchOpen(false); setReaderDetailsOpen(false); });
+$('toolbarMenuBtn').addEventListener('click', () => setToolbarOpen(!document.body.classList.contains('toolbar-open')));
+$('mobileSearchBtn').addEventListener('click', () => setMobileSearchOpen(!document.body.classList.contains('mobile-search-open')));
+$('readerDetailsBtn').addEventListener('click', () => setReaderDetailsOpen(!document.body.classList.contains('reader-details-open')));
+$('toolbarActions').addEventListener('click', event => { if (event.target.closest('button')) setToolbarOpen(false); });
+document.addEventListener('pointerdown', event => {
+  if (document.body.classList.contains('toolbar-open') && !event.target.closest('#toolbarActions, #toolbarMenuBtn')) setToolbarOpen(false);
+});
 $('phoneAccessBtn').addEventListener('click', openPhoneAccess);
 $('closePhoneBtn').addEventListener('click', () => $('phoneDialog').close());
 $('copyPhoneCodeBtn').addEventListener('click', () => copyPhoneValue($('phoneCode').value));
@@ -887,8 +919,8 @@ $('displayForm').addEventListener('submit', event => { event.preventDefault(); s
 for (const id of ['cancelDisplayBtn', 'closeDisplayBtn']) $(id).addEventListener('click', () => { if (!state.displayBusy) $('displayDialog').close(); });
 $('displayDialog').addEventListener('cancel', event => { if (state.displayBusy) event.preventDefault(); });
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && !document.querySelector('dialog[open]')) setSidebarOpen(false);
-  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') { event.preventDefault(); $('searchInput').focus(); $('searchInput').select(); }
+  if (event.key === 'Escape' && !document.querySelector('dialog[open]')) { setSidebarOpen(false); setToolbarOpen(false); setMobileSearchOpen(false); }
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') { event.preventDefault(); setMobileSearchOpen(true); $('searchInput').select(); }
 });
 ViewerAppearance.init({ api, toast });
 ViewerExport.init({ api, toast, getState: () => state, renderMessages });

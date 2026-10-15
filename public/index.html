@@ -34,7 +34,9 @@
       <select id="searchScope" aria-label="搜索范围"><option value="all">全部记录</option><option value="current">当前会话</option><option value="theater">小剧场正文</option></select>
       <button class="primary" type="submit">搜索</button>
     </form>
-    <div class="toolbar-actions"><button id="quoteCardBtn" class="quiet">摘句卡</button><button id="exportBtn" class="quiet">导出</button><button id="phoneAccessBtn" class="quiet" hidden>手机访问</button><button id="appearanceSettingsBtn" class="quiet">外观设置</button><button id="displaySettingsBtn" class="quiet">显示设置</button><button id="archiveSettingsBtn" class="quiet">存档设置</button><button id="refreshBtn" class="quiet" title="重新读取最新记录">刷新</button><button id="logoutBtn" class="quiet" hidden>退出</button></div>
+    <button id="mobileSearchBtn" class="mobile-tool" aria-expanded="false" aria-controls="searchForm">搜索</button>
+    <button id="toolbarMenuBtn" class="mobile-tool" aria-expanded="false" aria-controls="toolbarActions">更多 <span aria-hidden="true">⌄</span></button>
+    <div id="toolbarActions" class="toolbar-actions" role="group" aria-label="更多功能"><button id="quoteCardBtn" class="quiet">摘句卡</button><button id="exportBtn" class="quiet">导出</button><button id="phoneAccessBtn" class="quiet" hidden>手机访问</button><button id="appearanceSettingsBtn" class="quiet">外观设置</button><button id="displaySettingsBtn" class="quiet">显示设置</button><button id="archiveSettingsBtn" class="quiet">存档设置</button><button id="refreshBtn" class="quiet" title="重新读取最新记录">刷新</button><button id="logoutBtn" class="quiet" hidden>退出</button></div>
   </header>
   <main class="workspace">
     <button id="sidebarShade" class="sidebar-shade" aria-label="关闭会话列表" hidden></button>
@@ -50,7 +52,7 @@
       <div class="sidefoot"><span class="status-dot"></span>直接读取本机聊天记录</div>
     </aside>
     <section class="reader">
-      <header class="reader-head"><div><span id="readerKind" class="kind-label">原始记录</span><h2 id="readerTitle">选择一个会话</h2><div id="readerMeta" class="subtle">从左侧选择，或搜索一句以前说过的话</div></div><div class="reader-actions"><button id="selectMessagesBtn" aria-pressed="false">选择消息</button><button id="firstBtn" disabled>最早</button><button id="latestBtn" disabled>最新</button></div></header>
+      <header class="reader-head"><div class="reader-heading"><span id="readerKind" class="kind-label">原始记录</span><h2 id="readerTitle">选择一个会话</h2><div id="readerMeta" class="subtle">从左侧选择，或搜索一句以前说过的话</div></div><div class="reader-actions"><button id="selectMessagesBtn" aria-pressed="false">选择消息</button><button id="firstBtn" disabled>最早</button><button id="latestBtn" disabled>最新</button><button id="readerDetailsBtn" class="mobile-tool" aria-expanded="false" aria-controls="readerMeta selectMessagesBtn">详情</button></div></header>
       <div id="exportSelectionBar" class="export-selection-bar" hidden><span id="exportSelectionCount">已选 0 条</span><button id="selectVisibleBtn">全选已加载消息</button><button id="clearExportSelectionBtn">清空</button><button id="makeSelectedCardBtn" class="primary">制作摘句卡</button><button id="exportSelectedBtn">导出所选</button><button id="endExportSelectionBtn" class="quiet">完成选择</button></div>
       <nav id="chapterNavigation" class="chapter-navigation" aria-label="小剧场章节导航" hidden>
         <label for="chapterSelect">章节</label>
@@ -65,8 +67,8 @@
   <button id="cardSelectionFloat" class="card-selection-float" hidden>✦ 用选中文字做卡</button>
   <dialog id="cardDialog" class="card-dialog" aria-labelledby="cardDialogTitle">
     <header class="card-dialog-head"><div><h3 id="cardDialogTitle">把喜欢的话，留在一张卡片里</h3><p>挑几句 · 换个样子 · 存成一张长图</p></div><button id="closeCardBtn" class="quiet" aria-label="关闭摘句卡">×</button></header>
-    <div class="card-workspace">
-      <section class="card-editor" aria-label="编辑摘句卡">
+    <div id="cardWorkspace" class="card-workspace">
+      <section id="cardEditor" class="card-editor" aria-label="编辑摘句卡">
         <div class="card-tabs" role="tablist" aria-label="卡片编辑"><button id="cardContentTab" role="tab" aria-selected="true" aria-controls="cardContentPanel">摘句内容</button><button id="cardStyleTab" role="tab" aria-selected="false" aria-controls="cardStylePanel">卡片美化</button><button id="cardMaskTab" role="tab" aria-selected="false" aria-controls="cardMaskPanel">分享遮挡</button></div>
         <div class="card-editor-scroll">
           <section id="cardContentPanel" role="tabpanel" aria-labelledby="cardContentTab">
@@ -114,7 +116,8 @@
           </section>
         </div>
       </section>
-      <section class="card-preview" aria-label="卡片预览"><div class="card-preview-top"><span>实时预览</span><label><input id="cardPreviewActual" type="checkbox">展开长图</label></div><div id="cardPreviewStage" class="card-preview-stage"><canvas id="cardCanvas" aria-label="生成的摘句卡片"></canvas></div><p id="cardDimensions" class="card-dimensions" role="status"></p></section>
+      <div id="cardPreviewResizer" class="card-preview-resizer" role="separator" tabindex="0" aria-label="调整预览与编辑区域的比例" aria-orientation="horizontal" aria-valuemin="20" aria-valuemax="80" aria-valuenow="60" aria-valuetext="预览 60%，编辑 40%" aria-controls="cardPreview cardEditor" title="上下拖动调整比例，双击恢复 6:4；也可使用上下方向键"><span class="card-split-grip" aria-hidden="true"></span><span id="cardSplitLabel" aria-hidden="true">拖动调节 · 60 / 40</span></div>
+      <section id="cardPreview" class="card-preview" aria-label="卡片预览"><div class="card-preview-top"><span>实时预览</span><label><input id="cardPreviewActual" type="checkbox">展开长图</label></div><div id="cardPreviewStage" class="card-preview-stage"><canvas id="cardCanvas" aria-label="生成的摘句卡片"></canvas></div><p id="cardDimensions" class="card-dimensions" role="status"></p></section>
     </div>
     <footer class="card-dialog-foot"><p id="cardStatus" role="status">图片保存在当前设备，不会自动分享。</p><button id="cardResetStyleBtn" class="quiet">还原这套模板</button><button id="cardSaveBtn" class="primary">保存图片</button></footer>
   </dialog>

@@ -9,6 +9,57 @@ const ViewerCards = (() => {
   const fields = { font: 'cardFont', align: 'cardAlign', fontSize: 'cardFontSize', lineHeight: 'cardLineHeight', padding: 'cardPadding', background: 'cardBackground', textColor: 'cardTextColor', thoughtColor: 'cardThoughtColor', accent: 'cardAccent', imageMode: 'cardImageMode', imageOpacity: 'cardImageOpacity', coverHeight: 'cardCoverHeight', width: 'cardWidth', format: 'cardFormat', minRatio: 'cardMinRatio', showSignature: 'cardShowSignature', showDate: 'cardShowDate', showMark: 'cardShowMark' };
   function persist() { try { localStorage.setItem(storageKey, JSON.stringify(settings)); } catch {} }
   function status(text, error = false) { $('cardStatus').textContent = text; $('cardStatus').classList.toggle('card-error', error); }
+  function initPreviewSplit() {
+    const workspace = $('cardWorkspace'), handle = $('cardPreviewResizer');
+    const mobile = window.matchMedia('(max-width: 700px)'), splitKey = 'aionshome.quote-card.preview-split.v1';
+    let ratio = 60, drag = null;
+    const clamp = value => Math.max(20, Math.min(80, Math.round(value)));
+    // 比例属于当前浏览器的界面偏好，与卡片内容、模板及导出图片尺寸分开保存。
+    try { const saved = Number.parseFloat(localStorage.getItem(splitKey)); if (Number.isFinite(saved)) ratio = clamp(saved); } catch {}
+    function apply(value) {
+      ratio = clamp(value);
+      workspace.style.setProperty('--card-preview-share', `${ratio}fr`);
+      workspace.style.setProperty('--card-editor-share', `${100 - ratio}fr`);
+      handle.setAttribute('aria-valuenow', String(ratio));
+      handle.setAttribute('aria-valuetext', `预览 ${ratio}%，编辑 ${100 - ratio}%`);
+      $('cardSplitLabel').textContent = `拖动调节 · ${ratio} / ${100 - ratio}`;
+    }
+    function persistSplit() { try { localStorage.setItem(splitKey, String(ratio)); } catch {} }
+    function finishDrag(event) {
+      if (!drag || (event?.pointerId !== undefined && event.pointerId !== drag.id)) return;
+      const id = drag.id; drag = null;
+      workspace.classList.remove('card-resizing');
+      if (handle.hasPointerCapture(id)) handle.releasePointerCapture(id);
+      persistSplit();
+    }
+    apply(ratio);
+    handle.addEventListener('pointerdown', event => {
+      if (!mobile.matches || event.button !== 0 || event.isPrimary === false || drag) return;
+      const height = workspace.getBoundingClientRect().height - handle.getBoundingClientRect().height;
+      if (height <= 0) return;
+      event.preventDefault();
+      drag = { id: event.pointerId, startY: event.clientY, ratio, height };
+      handle.setPointerCapture(event.pointerId);
+      handle.focus({ preventScroll: true });
+      workspace.classList.add('card-resizing');
+    });
+    // Pointer Capture 兼容手指和鼠标，拖出细分隔条后仍能连续调节，不会滚动编辑区。
+    handle.addEventListener('pointermove', event => {
+      if (!drag || event.pointerId !== drag.id) return;
+      event.preventDefault();
+      apply(drag.ratio + (event.clientY - drag.startY) * 100 / drag.height);
+    });
+    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) handle.addEventListener(type, finishDrag);
+    handle.addEventListener('dblclick', event => { event.preventDefault(); apply(60); persistSplit(); });
+    handle.addEventListener('keydown', event => {
+      const step = event.shiftKey ? 10 : 2;
+      const values = { ArrowUp: ratio - step, ArrowDown: ratio + step, Home: 20, End: 80 };
+      if (!mobile.matches || !(event.key in values)) return;
+      event.preventDefault(); apply(values[event.key]); persistSplit();
+    });
+    $('cardDialog').addEventListener('close', () => finishDrag());
+    window.addEventListener('resize', () => finishDrag());
+  }
   function speaker(speaker) {
     const names = context.getState().names;
     return ({ user: names.user, assistant: names.aion, aion: names.aion, connor: names.connor, system: '系统', cam_user: '监控操作', cam_log: '监控记录', cam_trigger: '监控触发' })[speaker] || speaker || '';
@@ -243,6 +294,7 @@ const ViewerCards = (() => {
   }
   function init(value) {
     context = value;
+    initPreviewSplit();
     QuoteCardMaskUI.init({ onChange: scheduleRender, status, getToken: () => context.getState().editToken, showContent: () => setTab('content') });
     $('quoteCardBtn').addEventListener('click', () => context.getSelections().length ? importSelected() : open());
     $('makeSelectedCardBtn').addEventListener('click', importSelected);
