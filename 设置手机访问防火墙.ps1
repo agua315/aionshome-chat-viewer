@@ -23,9 +23,11 @@ try {
     $viewerNodePath = Join-Path $PSScriptRoot 'runtime\node.exe'
     if (-not (Test-Path -LiteralPath $viewerNodePath)) { $viewerNodePath = (Get-Command node.exe -ErrorAction Stop).Source }
     $ruleName = 'AionsHomeChatViewer-' + $Port
-    $ruleParameters = @{ DisplayName='AionsHome 聊天记录查看器（Wi-Fi / Tailscale）'; Direction='Inbound'; Action='Allow'; Enabled='True'; Profile='Any'; Protocol='TCP'; LocalPort=$Port; RemoteAddress=@('LocalSubnet','100.64.0.0/10'); Program=$viewerNodePath; EdgeTraversalPolicy='Block' }
-    if (Get-NetFirewallRule -Name $ruleName -ErrorAction SilentlyContinue) { Set-NetFirewallRule -Name $ruleName @ruleParameters | Out-Null }
-    else { New-NetFirewallRule -Name $ruleName @ruleParameters | Out-Null }
+    $ruleDisplayName = 'AionsHome 聊天记录查看器（Wi-Fi / Tailscale）'
+    # 新建规则用 DisplayName，更新名称用 NewDisplayName，避免已有规则的参数集冲突。
+    $ruleParameters = @{ Direction='Inbound'; Action='Allow'; Enabled='True'; Profile='Any'; Protocol='TCP'; LocalPort=$Port; RemoteAddress=@('LocalSubnet','100.64.0.0/10'); Program=$viewerNodePath; EdgeTraversalPolicy='Block' }
+    if (Get-NetFirewallRule -Name $ruleName -ErrorAction SilentlyContinue) { Set-NetFirewallRule -Name $ruleName -NewDisplayName $ruleDisplayName @ruleParameters | Out-Null }
+    else { New-NetFirewallRule -Name $ruleName -DisplayName $ruleDisplayName @ruleParameters | Out-Null }
     $result = @{ ok=$true; port=$Port; rule=$ruleName }
 } catch { $result = @{ ok=$false; port=$Port; error=$_.Exception.Message } }
 New-Item -ItemType Directory -Path (Split-Path -Parent $ResultPath) -Force | Out-Null
