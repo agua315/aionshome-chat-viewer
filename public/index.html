@@ -84,10 +84,12 @@
           <section id="cardMaskPanel" role="tabpanel" aria-labelledby="cardMaskTab" hidden>
             <label class="card-mask-toggle"><input id="cardMaskEnabled" type="checkbox" checked>启用分享遮挡</label>
             <p class="card-help">只作用于分享图片，编辑框保留原文。正文、标题和落款都支持。</p>
-            <div class="card-section-label"><span id="cardMaskManualCount">0 处手动选择</span><button id="cardMaskClearManualBtn">清空手动</button></div>
-            <div id="cardMaskManualList" class="card-mask-manual-list"></div><button id="cardMaskGoContentBtn">去输入框选字遮挡</button>
-            <label for="cardMaskKeywords">批量遮挡的字词</label><textarea id="cardMaskKeywords" maxlength="5000" spellcheck="false" placeholder="每行一个，例如：&#10;张三&#10;13800001234"></textarea>
-            <p class="card-help">所有出现的位置都会匹配，包括标题、落款和独白。不把输入当作正则表达式。</p>
+            <div class="card-section-label"><strong>不同字词，不同样式</strong><button id="cardMaskAddRuleBtn">＋ 添加一组</button></div>
+            <div id="cardMaskRuleList" class="card-mask-rule-list" role="group" aria-label="遮挡规则"></div>
+            <p class="card-help">例如名字用色块、地点换花朵、昵称换图片。点选一组，在下面编辑。</p>
+            <div class="card-mask-edit-heading"><strong id="cardMaskEditingLabel">正在编辑默认样式</strong><label id="cardMaskRuleEnabledField" class="card-mask-toggle" hidden><input id="cardMaskRuleEnabled" type="checkbox" checked>启用这组</label></div>
+            <label id="cardMaskKeywordsLabel" for="cardMaskKeywords">通用字词（使用默认样式）</label><textarea id="cardMaskKeywords" maxlength="5000" spellcheck="false" placeholder="每行一个；同一组使用同一种样式&#10;例如：张三&#10;李四"></textarea>
+            <p class="card-help">匹配所有出现的位置，包括标题、落款和独白。每行按完整字词匹配。</p>
             <label class="card-mask-toggle"><input id="cardMaskIgnoreCase" type="checkbox" checked>忽略英文字母大小写</label>
             <div class="card-style-grid card-section-break"><div><label for="cardMaskKind">遮挡样式</label><select id="cardMaskKind"><option value="pixel">方块马赛克</option><option value="solid">纯色遮挡条</option><option value="frost">磨砂遮挡</option><option value="stripe">斜线遮挡</option><option value="text">自定义文字替换</option><option value="pattern">图案 / 表情替换</option><option value="image">自选图片替换</option></select></div><div class="card-mask-color"><label for="cardMaskColor">遮挡 / 替代字颜色</label><input id="cardMaskColor" type="color"></div></div>
             <div id="cardMaskSizeField" class="card-slider-row"><label for="cardMaskSize">方块 / 斜线大小 <output id="cardMaskSizeValue"></output></label><input id="cardMaskSize" type="range" min="4" max="24" step="1"></div>
@@ -95,8 +97,11 @@
             <div id="cardMaskPatternField" hidden><label for="cardMaskPattern">自定义图案或表情</label><input id="cardMaskPattern" type="text" maxlength="32" placeholder="✦、♥、🌸…"><div class="card-slider-row"><label for="cardMaskPatternCount">每处重复几个 <output id="cardMaskPatternCountValue"></output></label><input id="cardMaskPatternCount" type="range" min="1" max="8" step="1"></div></div>
             <div id="cardMaskImageField" hidden><label>用自己的图片替换</label><div class="card-image-actions"><button id="cardMaskUploadImageBtn">选择遮挡图片</button><button id="cardMaskRemoveImageBtn">移除遮挡图片</button></div><p id="cardMaskImageNote" class="card-help"></p><input id="cardMaskImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" hidden><div class="card-slider-row"><label for="cardMaskImageSize">图片宽度 <output id="cardMaskImageSizeValue"></output></label><input id="cardMaskImageSize" type="range" min="0.7" max="4" step="0.1"></div></div>
             <p class="card-help">色块保留原文字占位；文字、图案、图片按替代后的宽度重新排版。遮挡区域不会绘制原字。</p>
+            <div class="card-section-label card-section-break"><span id="cardMaskManualCount">0 处手动选择</span><button id="cardMaskClearManualBtn">清空手动</button></div>
+            <div id="cardMaskManualList" class="card-mask-manual-list"></div><button id="cardMaskGoContentBtn">去输入框选字遮挡</button>
+            <p class="card-help">手动选择使用当前组的样式，也可逐项“套用当前”。手动选择优先；字词重叠会合并遮挡，优先靠前的组，通用字词最后。</p>
             <div id="cardMaskStats" class="card-mask-stats" role="status"></div><button id="cardMaskClearAllBtn" class="quiet">清空全部遮挡</button>
-            <p class="card-help">只记住遮挡样式；手动范围和批量字词跟随本次卡片，刷新后不保留。</p>
+            <p class="card-help">只记住默认样式；分组、批量字词和手动选择仅在本页保留，刷新后清空。</p>
           </section>
           <section id="cardStylePanel" role="tabpanel" aria-labelledby="cardStyleTab" hidden>
             <div class="card-section-label"><span>挑一套搭配</span><span>文字保持不变</span></div><div id="cardTemplates" class="card-template-grid"></div>

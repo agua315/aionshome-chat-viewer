@@ -5,6 +5,7 @@ const ViewerCards = (() => {
   const storageKey = 'aionshome.quote-card.style.v1';
   let context, settings = C.defaults(), sources = [], sourceParts = [], capturedSelection = null;
   let initialized = false, busy = false, loadingSource = false, renderEpoch = 0, renderFrame = null;
+  let renderError = '';
   const imageCache = new Map();
   const fields = { font: 'cardFont', align: 'cardAlign', fontSize: 'cardFontSize', lineHeight: 'cardLineHeight', padding: 'cardPadding', background: 'cardBackground', textColor: 'cardTextColor', thoughtColor: 'cardThoughtColor', accent: 'cardAccent', imageMode: 'cardImageMode', imageOpacity: 'cardImageOpacity', coverHeight: 'cardCoverHeight', width: 'cardWidth', format: 'cardFormat', minRatio: 'cardMinRatio', showSignature: 'cardShowSignature', showDate: 'cardShowDate', showMark: 'cardShowMark' };
   function persist() { try { localStorage.setItem(storageKey, JSON.stringify(settings)); } catch {} }
@@ -123,21 +124,29 @@ const ViewerCards = (() => {
     try {
       const masking = QuoteCardMaskUI.configuration();
       const image = await loadImage(settings.image);
-      let maskImage = null, maskImageError = null;
-      if (masking.style.enabled && masking.style.kind === 'image' && masking.style.image) {
-        try { maskImage = await loadImage(masking.style.image); } catch (error) { maskImageError = error; }
-      }
+      const maskImages = new Map(), maskImageErrors = new Map();
+      // 多组规则和手动遮挡可以各自用图；重复路径只加载一次，失效图片继续用色块安全预览。
+      const maskStyles = masking.style.enabled ? [masking.style, ...masking.rules.filter(rule => rule.style.enabled).map(rule => rule.style), ...masking.ranges.map(range => range.style).filter(Boolean)] : [];
+      const paths = [...new Set(maskStyles.filter(style => style.kind === 'image' && style.image).map(style => style.image))];
+      await Promise.all(paths.map(async path => {
+        try { maskImages.set(path, await loadImage(path)); } catch (error) { maskImageErrors.set(path, error); }
+      }));
       if (document.fonts?.ready) await document.fonts.ready;
       if (epoch !== renderEpoch || !$('cardDialog').open) return false;
-      const dimensions = QuoteCardRenderer.paint($('cardCanvas'), settings, { ...value, text: value.text.trim() ? value.text : '先挑几句喜欢的话，\n再把它们留在这里。' }, image, masking, maskImage);
+      const dimensions = QuoteCardRenderer.paint($('cardCanvas'), settings, { ...value, text: value.text.trim() ? value.text : '先挑几句喜欢的话，\n再把它们留在这里。' }, image, masking, maskImages);
       QuoteCardMaskUI.receiveResult(dimensions);
       $('cardDimensions').textContent = `${dimensions.width} × ${dimensions.height} 像素 · 一张完整${dimensions.height > dimensions.width * 1.9 ? '长' : ''}图${dimensions.reduced ? ' · 已适配超长内容尺寸' : ''}${dimensions.maskCount ? ` · 已遮挡 ${dimensions.maskCount} 处` : ''}`;
-      if (dimensions.maskCount && masking.style.kind === 'image' && !maskImage) {
-        status(maskImageError?.message || '已用色块暂代遮挡，请先选择一张遮挡图片再保存，或更换遮挡样式。', true); $('cardSaveBtn').disabled = true; return false;
+      if (dimensions.missingMaskImages.length) {
+        const error = dimensions.missingMaskImages.map(path => maskImageErrors.get(path)).find(Boolean);
+        renderError = error?.message || '有遮挡组未选图片，已用色块暂代；请为它选择图片或更换样式后再保存。';
+        status(renderError, true); $('cardSaveBtn').disabled = true; return false;
       }
+      // 修复缺图或字词输入后，清除由上一帧留下的错误；不覆盖上传等其他操作的提示。
+      if (renderError && $('cardStatus').textContent === renderError) status('预览已更新，可以保存图片。');
+      renderError = '';
       $('cardSaveBtn').disabled = !value.text.trim() || busy;
       return dimensions;
-    } catch (error) { if (epoch === renderEpoch) { status(error.message, true); $('cardSaveBtn').disabled = true; } return false; }
+    } catch (error) { if (epoch === renderEpoch) { renderError = error.message; status(renderError, true); $('cardSaveBtn').disabled = true; } return false; }
   }
   function scheduleRender() { if (renderFrame) cancelAnimationFrame(renderFrame); renderFrame = requestAnimationFrame(() => { renderFrame = null; render(); }); }
   function sourceCount() {

@@ -7,6 +7,12 @@
 .card-mask-manual-item{display:flex;align-items:center;gap:8px;font-size:11px;padding:6px 0;border-bottom:1px dashed var(--line)}
 .card-mask-manual-item span{flex:1;min-width:0;overflow-wrap:anywhere}.card-dialog .card-mask-manual-item button{font-size:10px;padding:3px 7px}
 .card-mask-stats{font-size:12px;line-height:1.7;padding:10px 12px;background:var(--soft);border:1px solid var(--line);border-radius:8px;margin:14px 0 8px}
+/* 分组只显示简短摘要，共用下方编辑器，手机上也不会堆叠多套表单。 */
+.card-mask-rule-list{display:flex;flex-direction:column;gap:6px;max-height:225px;overflow:auto;padding:2px}
+.card-mask-rule{display:flex;align-items:center;gap:4px;min-width:0}.card-dialog .card-mask-rule>button:not(.card-mask-rule-choose){padding:6px;font-size:10px;flex-shrink:0}
+.card-dialog .card-mask-rule-choose{flex:1;min-width:0;text-align:left;padding:8px 10px;border-radius:9px}.card-mask-rule-choose strong{display:block;font-size:12px;font-weight:500}.card-mask-rule-choose span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:var(--muted);margin-top:3px}
+.card-dialog .card-mask-rule-choose[aria-pressed=true]{border-color:var(--green);background:var(--soft);box-shadow:0 0 0 1px var(--green)}
+.card-mask-edit-heading{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--green)}.card-mask-edit-heading .card-mask-toggle{margin:0!important;font-size:11px}
 .card-dialog .card-color-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 dialog.card-dialog{padding:0;width:min(1160px,96vw);max-width:96vw;height:min(900px,95dvh);max-height:95dvh;overflow:hidden;border-radius:19px;color:var(--ink);background:var(--paper);border:1px solid var(--line)}
 .card-dialog[open]{display:flex;flex-direction:column}.card-dialog [hidden]{display:none!important}

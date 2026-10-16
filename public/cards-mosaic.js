@@ -57,24 +57,43 @@
     const style = normalize(options.style || options);
     const text = runs.map(run => run.text).join('');
     const candidates = [];
-    for (const word of words(options.keywords)) {
-      const regex = new RegExp(escapeRegex(word), style.ignoreCase ? 'giu' : 'gu');
-      for (const match of text.matchAll(regex)) candidates.push({ start: match.index, end: match.index + match[0].length });
-    }
     let visibleOffset = 0;
     const positioned = runs.map(run => {
       const part = { ...run, visibleStart: visibleOffset, start: Number.isInteger(run.start) ? run.start : visibleOffset };
       visibleOffset += run.text.length; return part;
     });
+    // 手动选择优先，其次按分组顺序，最后使用默认批量规则；每组保留自己的完整样式。
+    let priority = 0;
     for (const range of options.ranges || []) {
       if (range.field !== field) continue;
+      const parts = [];
       for (const run of positioned) {
         const from = Math.max(range.start, run.start), to = Math.min(range.end, run.start + run.text.length);
-        if (to > from) candidates.push({ start: run.visibleStart + from - run.start, end: run.visibleStart + to - run.start });
+        if (to > from) parts.push({ start: run.visibleStart + from - run.start, end: run.visibleStart + to - run.start });
       }
+      // 一次手动选择即使跨过独白标记，也只替换一次。
+      if (parts.length) candidates.push({ start: parts[0].start, end: parts.at(-1).end, style: range.style ? normalize(range.style) : style, priority: priority++ });
+    }
+    for (const rule of [...(options.rules || []), { keywords: options.keywords, style }]) {
+      const ruleStyle = normalize(rule.style);
+      if (!ruleStyle.enabled) continue;
+      for (const word of words(rule.keywords)) {
+        const regex = new RegExp(escapeRegex(word), ruleStyle.ignoreCase ? 'giu' : 'gu');
+        for (const match of text.matchAll(regex)) candidates.push({ start: match.index, end: match.index + match[0].length, style: ruleStyle, priority });
+      }
+      priority++;
     }
     const stops = candidates.length ? boundaries(text) : [];
-    const ranges = merge(candidates.map(range => expand(range, stops)));
+    const sorted = candidates.map(range => ({ ...range, ...expand(range, stops) })).sort((a, b) => a.start - b.start || b.end - a.end);
+    const ranges = [];
+    // 重叠命中合并为完整遮挡区，使用优先级最高的样式；较长词的尾部也不能漏出。
+    for (const range of sorted) {
+      const last = ranges.at(-1);
+      if (last && range.start < last.end) {
+        last.end = Math.max(last.end, range.end);
+        if (range.priority < last.priority) { last.style = range.style; last.priority = range.priority; }
+      } else ranges.push({ ...range });
+    }
     if (!ranges.length) return { runs, count: 0 };
     const result = [];
     for (const run of positioned) {
@@ -84,6 +103,7 @@
         if (range.end <= position || range.start >= end) continue;
         if (range.start > position) result.push({ ...run, text: text.slice(position, range.start), mask: null });
         const from = Math.max(position, range.start), to = Math.min(end, range.end);
+        const style = range.style;
         const mask = { kind: style.kind, key: `${field}:${range.start}:${range.end}`, style };
         if (['text', 'pattern', 'image'].includes(style.kind)) {
           // 一个匹配只替换一次，即使原字词跨过独白/正文的样式边界。

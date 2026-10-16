@@ -55,8 +55,9 @@ const QuoteCardRenderer = (() => {
     }
     ctx.restore();
   }
-  function paint(canvas, rawSettings, content, image = null, masking = null, maskImage = null) {
+  function paint(canvas, rawSettings, content, image = null, masking = null, maskImages = null) {
     const s = C.normalize(rawSettings);
+    const missingMaskImages = new Set();
     const measureCanvas = document.createElement('canvas');
     const measureContext = measureCanvas.getContext('2d');
     const family = C.fonts[s.font];
@@ -109,6 +110,9 @@ const QuoteCardRenderer = (() => {
       ctx.textAlign = 'left';
       for (const run of line.runs) {
         if (run.mask && !['text', 'pattern'].includes(run.mask.kind)) {
+          // 不同规则可以使用不同图片；仍兼容旧调用传入单张 Image 的方式。
+          const maskImage = typeof maskImages?.get === 'function' ? maskImages.get(run.mask.style.image) : maskImages;
+          if (run.mask.kind === 'image' && !maskImage) missingMaskImages.add(run.mask.style.image);
           QuoteCardMosaic.draw(ctx, run.mask, x, y, run.width, size, maskImage);
         } else {
           // 图形遮挡不会经过 fillText；替换字/图案在排版前已替掉原文。
@@ -140,7 +144,7 @@ const QuoteCardRenderer = (() => {
     if (s.showDate) { ctx.fillText(content.date || new Date().toLocaleDateString('zh-CN'), 1080 - s.padding, y + 12); y += 40; }
     if (s.showMark) { ctx.textAlign = 'left'; ctx.fillText('AionsHome · 摘句', s.padding, layout.height - s.padding + 8); }
     ctx.restore();
-    return { width: canvas.width, height: canvas.height, logicalHeight: layout.height, lines: layout.body.length, reduced: scale < requestedScale - 0.001, maskCount: layout.maskCount, maskCounts: layout.maskCounts, safeTitle: layout.safeTitle };
+    return { width: canvas.width, height: canvas.height, logicalHeight: layout.height, lines: layout.body.length, reduced: scale < requestedScale - 0.001, maskCount: layout.maskCount, maskCounts: layout.maskCounts, safeTitle: layout.safeTitle, missingMaskImages: [...missingMaskImages] };
   }
   return { paint };
 })();
