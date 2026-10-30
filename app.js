@@ -277,7 +277,8 @@ async function main() {
       }
       if (url.pathname === '/api/media') { sendFile(request, response, resolveMedia(url.searchParams.get('url') || '')); return; }
       if (url.pathname.startsWith('/api/appearance/background/')) { sendFile(request, response, backgroundFile(ROOT, url.pathname)); return; }
-      const appearanceAssets = { '/appearance-config.js': 'appearance-config.js', '/appearance.js': 'appearance.js', '/appearance.css': 'appearance.css' };
+      // 内置背景只允许这三个固定文件名，避免开放目录读取。
+      const appearanceAssets = { '/appearance-config.js': 'appearance-config.js', '/appearance.js': 'appearance.js', '/appearance.css': 'appearance.css', '/backgrounds/frost-1.jpg': 'backgrounds/frost-1.jpg', '/backgrounds/frost-2.jpg': 'backgrounds/frost-2.jpg', '/backgrounds/frost-3.jpg': 'backgrounds/frost-3.jpg' };
       if (appearanceAssets[url.pathname]) { sendFile(request, response, path.join(ROOT, 'public', appearanceAssets[url.pathname])); return; }
       const assets = { '/': 'index.html', '/app.js': 'app.js', '/style.css': 'style.css', '/cards.js': 'cards.js', '/cards.css': 'cards.css', '/cards-mosaic.js': 'cards-mosaic.js', '/cards-mosaic-ui.js': 'cards-mosaic-ui.js', '/cards-layout.js': 'cards-layout.js', '/cards-renderer.js': 'cards-renderer.js', '/export.js': 'export.js', '/export.css': 'export.css', '/mobile.css': 'mobile.css', '/theater.css': 'theater.css', '/icon.svg': 'icon.svg', '/markdown.js': 'markdown.js', '/message-display.js': 'message-display.js', '/vendor/markdown-it-15.0.1.min.js': 'vendor/markdown-it-15.0.1.min.js' };
       if (assets[url.pathname]) { sendFile(request, response, path.join(ROOT, 'public', assets[url.pathname])); return; }

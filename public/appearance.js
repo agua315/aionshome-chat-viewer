@@ -3,6 +3,11 @@
 // 外观编辑使用一份草稿：预览不落盘，取消恢复已保存状态；正文和聊天数据库不参与。
 window.ViewerAppearance = (() => {
   const C = AppearanceConfig;
+  const builtInBackgrounds = [
+    { path: '/backgrounds/frost-1.jpg', name: '枝影窗光' },
+    { path: '/backgrounds/frost-2.jpg', name: '雾面水光' },
+    { path: '/backgrounds/frost-3.jpg', name: '纱影叠纸' },
+  ];
   const get = id => document.getElementById(id);
   const clone = value => JSON.parse(JSON.stringify(value));
   let saved = C.defaults(), draft = null, busy = false, token = null, api, toast;
@@ -74,6 +79,10 @@ window.ViewerAppearance = (() => {
     controls();
   }
 
+  function renderBuiltinBackgrounds() {
+    for (const card of get('backgroundBuiltins').querySelectorAll('[data-background-name]')) card.setAttribute('aria-pressed', String(card.dataset.backgroundName === draft.background.name));
+  }
+
   function renderBackground() {
     const bg = draft.background;
     get('backgroundPreview').style.backgroundImage = bg.image ? `url(${JSON.stringify(bg.image)})` : '';
@@ -82,6 +91,7 @@ window.ViewerAppearance = (() => {
     get('backgroundFit').value = bg.fit;
     get('backgroundOpacity').value = bg.opacity;
     get('backgroundOpacityLabel').textContent = bg.opacity + '%';
+    renderBuiltinBackgrounds();
     controls();
   }
 
@@ -138,26 +148,53 @@ window.ViewerAppearance = (() => {
     get('cssPresetName').focus(); get('cssPresetName').select();
   }
 
-  async function uploadBackground(file) {
-    if (!file || busy) return;
-    if (file.size > 20 * 1024 * 1024) { error('背景图片请选择 20 MB 以内的文件'); get('backgroundFile').value = ''; return; }
+  async function uploadBackground(file, displayName = file?.name, options = {}) {
+    if (!file || (busy && !options.keepBusy)) return false;
+    if (file.size > 20 * 1024 * 1024) { error('背景图片请选择 20 MB 以内的文件'); if (!options.keepBusy) get('backgroundFile').value = ''; return false; }
     let uploaded = false;
-    busy = true; error(); controls(); get('chooseBackgroundBtn').textContent = '正在上传…';
+    if (!options.keepBusy) { busy = true; error(); controls(); }
+    get('chooseBackgroundBtn').textContent = '正在上传…';
     try {
       const result = await api('/api/appearance/background', {}, { method: 'POST', headers: { 'Content-Type': file.type || 'application/octet-stream', 'X-Viewer-Token': token }, body: file, signal: AbortSignal.timeout(120000) });
       draft.background.image = result.image;
-      draft.background.name = file.name;
+      draft.background.name = displayName || file.name;
       uploaded = true;
       renderBackground();
     } catch (cause) { error(cause.message); }
     finally {
-      busy = false; controls(); get('chooseBackgroundBtn').textContent = '选择背景图片'; get('backgroundFile').value = '';
+      if (!options.keepBusy) { busy = false; controls(); get('backgroundFile').value = ''; }
+      get('chooseBackgroundBtn').textContent = '选择背景图片';
+      if (draft && uploaded && !options.keepBusy) preview();
+    }
+    return uploaded;
+  }
+
+  async function selectBuiltinBackground(item) {
+    if (busy) return;
+    let uploaded = false;
+    busy = true; error(); controls(); get('chooseBackgroundBtn').textContent = '正在读取…';
+    try {
+      const response = await fetch(item.path, { cache: 'no-store', signal: AbortSignal.timeout(120000) });
+      if (!response.ok) throw new Error('无法读取内置背景');
+      const blob = await response.blob();
+      const file = new File([blob], item.path.split('/').pop(), { type: blob.type || 'image/jpeg' });
+      uploaded = await uploadBackground(file, item.name, { keepBusy: true });
+    } catch (cause) { error(cause.message); }
+    finally {
+      busy = false; controls(); get('chooseBackgroundBtn').textContent = '选择背景图片';
       if (draft && uploaded) preview();
     }
   }
 
   function init(actions) {
     api = actions.api; toast = actions.toast;
+    for (const item of builtInBackgrounds) {
+      const button = element('button', 'theme-card background-card'); button.type = 'button'; button.dataset.backgroundName = item.name; button.setAttribute('aria-pressed', 'false'); button.setAttribute('aria-label', '使用内置背景：' + item.name);
+      const image = element('img', 'background-card-image'); image.src = item.path; image.alt = item.name; image.loading = 'lazy';
+      button.append(image, element('span', 'theme-card-title', item.name));
+      button.addEventListener('click', () => selectBuiltinBackground(item));
+      get('backgroundBuiltins').append(button);
+    }
     for (const theme of C.themes) {
       const button = element('button', 'theme-card'); button.type = 'button'; button.dataset.theme = theme.id; button.setAttribute('aria-pressed', 'false');
       const sample = element('span', 'theme-sample'); sample.style.background = theme.colors.canvas;

@@ -18,6 +18,9 @@
     { id: 'apricot', name: '暖杏手札', description: '暖杏留白 · 旧书气息', scheme: 'light', colors: {
       ink: '#4c3e32', muted: '#9a8979', accent: '#a7734d', accentInk: '#ffffff', paper: '#fffaf1', canvas: '#f6efe4', panel: '#faf3e8', line: '#e9ddcd', bubble: '#faf1e4', user: '#f1dfc6', hover: '#f1e5d4', input: '#fff9f0', thought: '#f3eaf0', thoughtInk: '#94798b', watch: '#edf2e6', watchInk: '#798766', pat: '#f9e9da', patInk: '#a57855', mark: '#f0d896',
     } },
+    { id: 'frost', name: '冷淡玻璃', description: '雾灰留白 · 透明气泡', scheme: 'light', colors: {
+      ink: '#3d4448', muted: '#8d969c', accent: '#6f8a7c', accentInk: '#ffffff', paper: '#f9fafa', canvas: '#eef1f1', panel: '#f5f6f6', line: '#e3e7e9', bubble: '#fbfcfc', user: '#dfe9e2', hover: '#eceff0', input: '#f7f8f8', thought: '#f1e6eb', thoughtInk: '#8f6f7d', watch: '#e3ebf6', watchInk: '#5f7898', pat: '#f3ede6', patInk: '#92775f', mark: '#f1e3b8',
+    } },
     { id: 'midnight', name: '墨夜星光', description: '深色夜读 · 冷月微光', scheme: 'dark', colors: {
       ink: '#dce5ee', muted: '#92a3b5', accent: '#9bbfda', accentInk: '#172430', paper: '#19232e', canvas: '#131c26', panel: '#1d2935', line: '#344353', bubble: '#243240', user: '#304759', hover: '#2b3c4c', input: '#202e3b', thought: '#302d43', thoughtInk: '#c3b5da', watch: '#233c3a', watchInk: '#a0c9bc', pat: '#3d342b', patInk: '#d4b38b', mark: '#665638',
     } },
