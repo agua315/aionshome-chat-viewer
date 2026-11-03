@@ -188,7 +188,7 @@ const ViewerExport = (() => {
     $('selectVisibleBtn').addEventListener('click', () => {
       const state = context.getState(); if (!state.selected) return;
       for (const message of state.items) {
-        if (state.displaySettings.hideSystemMessages && MessageDisplay.isSystemMessage(message)) continue;
+        if (MessageDisplay.isHiddenMessage(message, state.displaySettings)) continue;
         const item = { source: state.selected.source, conversationId: state.selected.id, messageId: message.id };
         selections.set(messageKey(item), item);
       }

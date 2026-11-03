@@ -268,17 +268,17 @@ async function main() {
       if (url.pathname === '/api/info') { sendJson(response, { appId: APP_ID, instance, editToken: token, localClient: isLocalClient(request), phoneEnabled: phoneAccess.enabled, backupSettings: store.backupSettings(), displaySettings, appearanceSettings, exportPdfAvailable: !!pdfBrowser(), ...store.info() }); return; }
       if (url.pathname === '/api/conversations') { sendJson(response, { items: store.conversations() }); return; }
       if (url.pathname === '/api/messages') {
-        sendJson(response, store.messages({ source: url.searchParams.get('source'), id: url.searchParams.get('id'), anchor: url.searchParams.get('anchor'), direction: url.searchParams.get('direction'), cursor: cursor(url.searchParams), position: url.searchParams.get('position') || 'latest', hideSystemMessages: url.searchParams.get('hideSystemMessages') === 'true' }));
+        sendJson(response, store.messages({ source: url.searchParams.get('source'), id: url.searchParams.get('id'), anchor: url.searchParams.get('anchor'), direction: url.searchParams.get('direction'), cursor: cursor(url.searchParams), position: url.searchParams.get('position') || 'latest', hideSystemMessages: url.searchParams.get('hideSystemMessages') === 'true', showGameCards: url.searchParams.get('showGameCards') !== 'false' }));
         return;
       }
       if (url.pathname === '/api/search') {
-        sendJson(response, store.search({ query: url.searchParams.get('q'), kind: url.searchParams.get('kind'), source: url.searchParams.get('source'), id: url.searchParams.get('id'), cursor: cursor(url.searchParams), hideSystemMessages: url.searchParams.get('hideSystemMessages') === 'true' }));
+        sendJson(response, store.search({ query: url.searchParams.get('q'), kind: url.searchParams.get('kind'), source: url.searchParams.get('source'), id: url.searchParams.get('id'), cursor: cursor(url.searchParams), hideSystemMessages: url.searchParams.get('hideSystemMessages') === 'true', showGameCards: url.searchParams.get('showGameCards') !== 'false' }));
         return;
       }
       if (url.pathname === '/api/media') { sendFile(request, response, resolveMedia(url.searchParams.get('url') || '')); return; }
       if (url.pathname.startsWith('/api/appearance/background/')) { sendFile(request, response, backgroundFile(ROOT, url.pathname)); return; }
-      // 内置背景只允许这三个固定文件名，避免开放目录读取。
-      const appearanceAssets = { '/appearance-config.js': 'appearance-config.js', '/appearance.js': 'appearance.js', '/appearance.css': 'appearance.css', '/backgrounds/frost-1.jpg': 'backgrounds/frost-1.jpg', '/backgrounds/frost-2.jpg': 'backgrounds/frost-2.jpg', '/backgrounds/frost-3.jpg': 'backgrounds/frost-3.jpg' };
+      // 内置背景只允许这几个固定文件名，避免开放目录读取。
+      const appearanceAssets = { '/appearance-config.js': 'appearance-config.js', '/appearance.js': 'appearance.js', '/appearance.css': 'appearance.css', '/backgrounds/frost-1.jpg': 'backgrounds/frost-1.jpg', '/backgrounds/frost-2.jpg': 'backgrounds/frost-2.jpg', '/backgrounds/frost-3.jpg': 'backgrounds/frost-3.jpg', '/backgrounds/letter-1.jpg': 'backgrounds/letter-1.jpg', '/backgrounds/pixel-1.jpg': 'backgrounds/pixel-1.jpg' };
       if (appearanceAssets[url.pathname]) { sendFile(request, response, path.join(ROOT, 'public', appearanceAssets[url.pathname])); return; }
       const assets = { '/': 'index.html', '/app.js': 'app.js', '/style.css': 'style.css', '/cards.js': 'cards.js', '/cards.css': 'cards.css', '/cards-mosaic.js': 'cards-mosaic.js', '/cards-mosaic-ui.js': 'cards-mosaic-ui.js', '/cards-layout.js': 'cards-layout.js', '/cards-renderer.js': 'cards-renderer.js', '/export.js': 'export.js', '/export.css': 'export.css', '/mobile.css': 'mobile.css', '/theater.css': 'theater.css', '/icon.svg': 'icon.svg', '/markdown.js': 'markdown.js', '/message-display.js': 'message-display.js', '/vendor/markdown-it-15.0.1.min.js': 'vendor/markdown-it-15.0.1.min.js' };
       if (assets[url.pathname]) { sendFile(request, response, path.join(ROOT, 'public', assets[url.pathname])); return; }

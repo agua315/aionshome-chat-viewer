@@ -118,7 +118,7 @@ try {
   assert.equal(JSON.parse(fs.readFileSync(preferenceFile, 'utf8')).backupEnabled, false);
   assert.equal(preferenceConfig.port, 4328);
   // 两种设置交替保存应互不覆盖；重启时仍能读取原来的阅读偏好。
-  const display = { mode: 'novel', userSide: 'left', showUserName: false, showUserAvatar: false, showCharacterAvatar: false, hideSystemMessages: true, collapseMonitorScreenshots: true };
+  const display = { mode: 'novel', userSide: 'left', showUserName: false, showUserAvatar: false, showCharacterAvatar: false, hideSystemMessages: true, showGameCards: false, collapseMonitorScreenshots: true };
   saveDisplayPreferences(preferenceFile, preferenceConfig, display);
   saveBackupPreferences(preferenceFile, preferenceConfig, { enabled: true, directory: backupDirectory });
   const persisted = JSON.parse(fs.readFileSync(preferenceFile, 'utf8'));
@@ -128,6 +128,7 @@ try {
   assert.throws(() => normalizeDisplayPreferences({ mode: 'unknown' }), /阅读样式/);
   assert.equal(normalizeDisplayPreferences({ mode: 'novel' }).collapseMonitorScreenshots, true);
   assert.equal(normalizeDisplayPreferences({ mode: 'novel' }).hideSystemMessages, false);
+  assert.equal(normalizeDisplayPreferences({ mode: 'novel' }).showGameCards, true);
   assert(isSystemMessage({ speaker: 'cam_trigger' }));
   assert(!isSystemMessage({ speaker: 'assistant', content: '我查看了监控' }));
   assert(isMonitorScreenshot('/screenshots/cam_check_123.jpg'));
@@ -168,6 +169,18 @@ try {
   assert.equal(store.search({ query: '过滤测试词', hideSystemMessages: true }).items.length, 1);
   assert.equal(store.search({ query: '过滤测试词', hideSystemMessages: true }).items[0].speaker, 'user');
   assert.equal(store.search({ query: '过滤测试词', hideSystemMessages: false }).hasMore, true);
+  // 桌游卡片有独立开关：隐藏系统消息时照常显示，关闭开关时单独隐藏。
+  legacyWriter.prepare('INSERT INTO chatroom_messages VALUES (?, ?, ?, ?, ?, ?, ?)').run('game-room', 'room', 'system', '过滤测试词：行安邀请你玩桌球', 4001, JSON.stringify([{ type: 'mini_game_invite', game: '桌球', actor_name: '行安' }]), '');
+  const roomIds = options => store.messages({ source: 'room', id: 'room', ...options }).items.map(message => message.id);
+  assert(roomIds({ hideSystemMessages: true }).includes('game-room'));
+  assert(!roomIds({ hideSystemMessages: true }).includes('system-room'));
+  assert(!roomIds({ hideSystemMessages: true, showGameCards: false }).includes('game-room'));
+  assert(!roomIds({ showGameCards: false }).includes('game-room') && roomIds({ showGameCards: false }).includes('system-room'));
+  assert(store.messages({ source: 'room', id: 'room', hideSystemMessages: true, anchor: 'game-room' }).items.some(message => message.id === 'game-room'));
+  const gameHit = store.search({ query: '行安邀请你玩', source: 'room', id: 'room', hideSystemMessages: true }).items[0];
+  assert.equal(gameHit.id, 'game-room');
+  assert.equal(gameHit.attachments[0].type, 'mini_game_invite');
+  assert.equal(store.search({ query: '行安邀请你玩', hideSystemMessages: true, showGameCards: false }).items.length, 0);
   legacyWriter.exec('DROP TABLE sync_events');
   legacyWriter.close();
   const independentEdit = store.updateMessage({ source: 'aion', id: 'private', messageId: 'm100', originalContent: after.content, content: '没有同步表也能独立保存' });

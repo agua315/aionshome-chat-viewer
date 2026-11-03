@@ -13,6 +13,8 @@
     { id: 'forest', name: '雾林来信', note: '山色与留白', bg: '#eef2ec', ink: '#324e42', accent: '#6f8b79', font: 'serif', cover: 'top', colors: ['#334f47', '#c7d8cf'] },
     { id: 'night', name: '午夜蓝调', note: '夜色里的话', bg: '#142339', ink: '#e8e8df', accent: '#aabdd5', font: 'sans', cover: 'full', colors: ['#142339', '#465972'] },
     { id: 'sakura', name: '粉樱手札', note: '淡粉花笺', bg: '#faefef', ink: '#745459', accent: '#bd858d', font: 'serif', cover: 'full', colors: ['#eac8cd', '#fff5ef'] },
+    { id: 'letter', name: '复古信笺', note: '旧信纸与邮戳', bg: '#f6ecd4', ink: '#4a3426', accent: '#9b3d32', font: 'serif', cover: 'full', colors: ['#e9d6b0', '#fbf3e2'] },
+    { id: 'pixel', name: '像素游戏', note: 'RPG 对话框', bg: '#fffbea', ink: '#2b2f4a', accent: '#3b4a8a', font: 'sans', cover: 'full', colors: ['#2f3557', '#bfe8cf'] },
   ];
   const fonts = {
     sans: '"Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif',
@@ -21,7 +23,7 @@
   };
   const number = (value, fallback, min, max) => Number.isFinite(Number(value)) ? Math.max(min, Math.min(max, Number(value))) : fallback;
   const color = (value, fallback) => /^#[\da-f]{6}$/i.test(String(value)) ? value.toLowerCase() : fallback;
-  const thoughtColors = { cover: '#8b7892', paper: '#92747e', forest: '#81718c', night: '#c4acd8', sakura: '#a56e86' };
+  const thoughtColors = { cover: '#8b7892', paper: '#92747e', forest: '#81718c', night: '#c4acd8', sakura: '#a56e86', letter: '#7d6d5c', pixel: '#4d5378' };
   function defaults(id = 'cover') {
     const t = templates.find(item => item.id === id) || templates[0];
     return { template: t.id, background: t.bg, textColor: t.ink, thoughtColor: thoughtColors[t.id], accent: t.accent, font: t.font, fontSize: 35, lineHeight: 1.95, align: 'left', padding: 86, radius: 0, image: '', imageMode: t.cover, imageOpacity: 22, coverHeight: 620, width: 1080, format: 'png', showSignature: true, showDate: false, showMark: false, minRatio: 'auto' };
@@ -119,7 +121,7 @@
     const bottomHeight = (signature.length ? signature.length * 40 + 38 : 0) + (s.showDate ? 40 : 0) + (s.showMark ? 42 : 0);
     const textTop = cover + s.padding + titleHeight + (s.template === 'cover' ? 0 : 70);
     const minimum = ({ auto: 800, square: 1080, portrait: 1440, story: 1920 })[s.minRatio];
-    const height = Math.ceil(Math.max(minimum, textTop + quoteHeight + bottomHeight + s.padding + 20));
+    const height = Math.ceil(Math.max(minimum, textTop + quoteHeight + bottomHeight + s.padding + 20 + (s.template === 'pixel' ? 80 : 0)));
     const maskCounts = { text: protectedBody.count, title: protectedTitle.count, signature: s.showSignature ? protectedSignature.count : 0 };
     return { settings: s, width: 1080, height, textWidth, body, bodyRuns, heading, headingRuns, signature, signatureRuns, textTop, quoteHeight, bottomHeight, titleY: cover + s.padding, cover,
       maskCounts, maskCount: Object.values(maskCounts).reduce((sum, n) => sum + n, 0), safeTitle: mosaic.safeText(protectedTitle.runs) };

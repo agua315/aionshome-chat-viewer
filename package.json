@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node app.js --open",
-    "test": "node verify.js && node verify-sync.js && node verify-phone.js && node verify-theater.js && node verify-appearance.js && node verify-export.js && node verify-cards.js && node verify-mosaic.js"
+    "test": "node verify.js && node verify-sync.js && node verify-phone.js && node verify-theater.js && node verify-appearance.js && node verify-export.js && node verify-cards.js && node verify-mosaic.js && node verify-games.js"
   },
   "repository": {
     "type": "git",

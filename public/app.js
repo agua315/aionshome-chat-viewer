@@ -8,11 +8,11 @@ const state = {
   messageEpoch: 0, searchEpoch: 0, messageBusy: false, searchBusy: false,
   editToken: null, edit: null, editBusy: false,
   backupSettings: { enabled: true, directory: '' }, archiveBusy: false,
-  displaySettings: { mode: 'plain', userSide: 'right', showUserName: true, showUserAvatar: true, showCharacterAvatar: true, hideSystemMessages: false, collapseMonitorScreenshots: true }, displayBusy: false, avatars: {},
+  displaySettings: { mode: 'plain', userSide: 'right', showUserName: true, showUserAvatar: true, showCharacterAvatar: true, hideSystemMessages: false, showGameCards: true, collapseMonitorScreenshots: true }, displayBusy: false, avatars: {},
   localClient: true,
   chapters: [], currentChapterId: null,
 };
-const displayToggles = ['showUserName', 'showUserAvatar', 'showCharacterAvatar', 'hideSystemMessages', 'collapseMonitorScreenshots'];
+const displayToggles = ['showUserName', 'showUserAvatar', 'showCharacterAvatar', 'hideSystemMessages', 'showGameCards', 'collapseMonitorScreenshots'];
 const dateFormat = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' });
 const timeFormat = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 const date = ts => dateFormat.format(new Date(ts * 1000));
@@ -130,7 +130,7 @@ function snippet(text) {
 
 function renderSearch() {
   const fragment = document.createDocumentFragment();
-  const hits = state.hits.filter(hit => !state.displaySettings.hideSystemMessages || !MessageDisplay.isSystemMessage(hit));
+  const hits = state.hits.filter(hit => !MessageDisplay.isHiddenMessage(hit, state.displaySettings));
   for (const hit of hits) {
     const active = state.selected && state.selected.source === hit.source && state.selected.id === hit.conversation_id && state.target === hit.id;
     const button = node('button', 'result' + (active ? ' active' : ''));
@@ -183,7 +183,7 @@ async function search(more = false) {
   renderSearch();
   if (!more) $('searchResults').scrollTop = 0;
   try {
-    const result = await api('/api/search', { q: state.query, source: state.searchSource, id: state.searchId, kind: state.searchKind, cursor: more ? state.searchCursor : null, hideSystemMessages: state.displaySettings.hideSystemMessages });
+    const result = await api('/api/search', { q: state.query, source: state.searchSource, id: state.searchId, kind: state.searchKind, cursor: more ? state.searchCursor : null, hideSystemMessages: state.displaySettings.hideSystemMessages, showGameCards: state.displaySettings.showGameCards });
     if (epoch !== state.searchEpoch) return;
     state.hits = more ? [...state.hits, ...result.items] : result.items;
     state.searchCursor = result.nextCursor;
@@ -389,6 +389,36 @@ function renderChapter(message) {
   return row;
 }
 
+// 桌游邀约、战报和猜拳只读展示：文字逐段作为纯文本插入，保留搜索高亮，不放游戏跳转。
+function renderGameCard(game) {
+  const strong = (className, text) => { const item = node('strong', className); item.append(highlighted(text)); return item; };
+  if (game.kind === 'invite') {
+    const card = node('div', 'game-invite');
+    const icon = node('span', 'game-invite-icon', game.icon); icon.setAttribute('aria-hidden', 'true');
+    const text = node('span', 'game-invite-text');
+    text.append(strong('', game.actor), document.createTextNode(' 邀请你玩 '), strong('', game.game));
+    card.append(icon, text);
+    return card;
+  }
+  if (game.kind === 'rps') {
+    const card = node('div', 'game-rps');
+    if (game.topic) card.title = '约定：' + game.topic;
+    const text = node('span', 'game-rps-text'); text.append(highlighted(game.text));
+    card.append(node('span', 'game-rps-label', '猜拳'), text);
+    return card;
+  }
+  const card = node('div', 'game-result-card');
+  const heading = node('div', 'game-result-heading');
+  const badge = node('span', 'game-result-badge', game.badge); badge.setAttribute('aria-hidden', 'true');
+  heading.append(badge, strong('game-result-title', game.title), node('span', 'game-result-scope', game.scope));
+  card.append(heading);
+  const line = (className, text) => { const item = node('p', className); item.append(highlighted(text)); card.append(item); };
+  line('game-result-outcome', game.outcome);
+  for (const detail of game.details) line('game-result-detail', detail);
+  if (game.note) line('game-result-note', game.note);
+  return card;
+}
+
 function renderMessage(message) {
   if (message.readOnly && message.speaker === 'chapter') return renderChapter(message);
   const pat = MessageDisplay.isPatMessage(message);
@@ -420,13 +450,20 @@ function renderMessage(message) {
   editButton.addEventListener('click', () => openEdit(message));
   metadata.append(editButton);
   const bubble = node('div', 'bubble');
-  if (pat) {
+  const game = MessageDisplay.gameCard(message);
+  if (game) {
+    row.classList.add('game-message'); bubble.classList.add('game-bubble');
+    bubble.append(renderGameCard(game));
+  } else if (pat) {
     const attachment = message.attachments.find(item => item?.type === 'pat');
     const text = message.content || `${speakerName(attachment.actor || 'system')} ${attachment.action || '拍了拍'} ${speakerName(attachment.target || '')}${attachment.suffix || ''}`;
     bubble.append(renderEventNote('pat', '拍一拍', text));
   } else bubble.append(messageContent(message.content, message));
   body.append(metadata, bubble);
-  for (const attachment of message.attachments) { const element = renderAttachment(attachment, message); if (element) body.append(element); }
+  for (const attachment of message.attachments) {
+    if (MessageDisplay.GAME_TYPES.includes(attachment?.type)) continue;
+    const element = renderAttachment(attachment, message); if (element) body.append(element);
+  }
   if (message.reasoning_content) {
     const details = node('details', 'reasoning');
     const text = node('pre'); text.append(highlighted(message.reasoning_content));
@@ -582,7 +619,7 @@ async function saveDisplaySettings() {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Viewer-Token': state.editToken },
       body: JSON.stringify({ mode: $('displayMode').value, userSide: $('userSide').value, ...Object.fromEntries(displayToggles.map(id => [id, $(id).checked])) }),
     });
-    const filterChanged = state.displaySettings.hideSystemMessages !== result.displaySettings.hideSystemMessages;
+    const filterChanged = state.displaySettings.hideSystemMessages !== result.displaySettings.hideSystemMessages || state.displaySettings.showGameCards !== result.displaySettings.showGameCards;
     state.displaySettings = result.displaySettings;
     // 切换后以当前可见消息为锚，长段落排版改变也不会跳回聊天两端。
     const scroller = $('messages');
@@ -655,7 +692,7 @@ function renderMessages() {
   } else older.textContent = theater ? '— 故事正文开始 —' : '— 这个会话的最早记录 —';
   inner.append(older);
   let day = '';
-  const visibleItems = state.items.filter(message => !state.displaySettings.hideSystemMessages || !MessageDisplay.isSystemMessage(message));
+  const visibleItems = state.items.filter(message => !MessageDisplay.isHiddenMessage(message, state.displaySettings));
   for (const message of visibleItems) {
     const messageDay = date(message.created_at);
     if (!theater && messageDay !== day) { inner.append(node('div', 'day', messageDay)); day = messageDay; }
@@ -739,7 +776,7 @@ async function openConversation(conversation, { anchor = null, position = conver
   renderConversations();
   if (state.searchMode) renderSearch();
   try {
-    const result = await api('/api/messages', { source: conversation.source, id: conversation.id, anchor, position, hideSystemMessages: state.displaySettings.hideSystemMessages });
+    const result = await api('/api/messages', { source: conversation.source, id: conversation.id, anchor, position, hideSystemMessages: state.displaySettings.hideSystemMessages, showGameCards: state.displaySettings.showGameCards });
     if (epoch !== state.messageEpoch) return;
     state.items = result.items;
     if (anchor && !state.items.some(message => message.id === anchor)) state.target = null;
@@ -788,7 +825,7 @@ async function loadMore(direction) {
   updateChapterSelection();
   scroller.querySelectorAll('.load-more').forEach(button => { button.disabled = true; button.textContent = '正在加载…'; });
   try {
-    const result = await api('/api/messages', { source: selected.source, id: selected.id, direction, cursor, hideSystemMessages: state.displaySettings.hideSystemMessages });
+    const result = await api('/api/messages', { source: selected.source, id: selected.id, direction, cursor, hideSystemMessages: state.displaySettings.hideSystemMessages, showGameCards: state.displaySettings.showGameCards });
     if (epoch !== state.messageEpoch) return;
     // 同时间消息使用时间和 ID 的复合游标，既不遗漏，也不重复。
     const known = new Set(state.items.map(m => m.id));

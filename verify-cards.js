@@ -3,7 +3,10 @@
 // 轻量检查分句、排版与一张长图，不读取真实聊天、不引入截图或绘图库依赖。
 const assert = require('node:assert/strict');
 const C = require('./public/cards-layout');
-assert.equal(C.templates.length, 5);
+assert.equal(C.templates.length, 7);
+assert.equal(C.defaults('letter').font, 'serif');
+assert.equal(C.defaults('letter').thoughtColor, '#7d6d5c');
+assert.equal(C.defaults('pixel').thoughtColor, '#4d5378');
 assert.deepEqual(C.sentences('“别急。”\n我在！抓紧了，不准叹气。🙂今天也要开心'), ['“别急。”', '我在！', '抓紧了，不准叹气。', '🙂今天也要开心']);
 assert.equal(C.sentences('没有标点'.repeat(10000)).join(''), '没有标点'.repeat(10000));
 const sample = '中文🙂e\u0301English 以及不能丢失的标点。'.repeat(100);
@@ -14,6 +17,8 @@ const measure = (value, size) => Array.from(value).length * size;
 const short = C.layout(C.defaults(), { text: '短短一句话', title: '标题', signature: '落款' }, measure);
 const text = '一整张长图的最后一句话不能丢失。\n'.repeat(180);
 const long = C.layout(C.defaults(), { text, title: '完整长图', signature: '只存一张' }, measure);
+// 像素模板底部多留风景条的高度，其它模板高度不变。
+assert.equal(C.layout(C.defaults('pixel'), { text, title: '完整长图', signature: '只存一张' }, measure).height - C.layout(C.defaults('paper'), { text, title: '完整长图', signature: '只存一张' }, measure).height, 80);
 assert.ok(long.height > short.height * 5);
 assert.equal(long.body.join('').replace(/\n/g, ''), text.replace(/\n/g, ''));
 assert.ok(!('pages' in long), '没有分页或分张逻辑');
@@ -35,4 +40,4 @@ for (const template of C.templates) {
 const bad = C.normalize({ image: 'https://example.com/remote.jpg', fontSize: -3, lineHeight: 100, width: 7, background: 'red', format: 'exe' });
 assert.equal(bad.image, ''); assert.equal(bad.fontSize, 22); assert.equal(bad.lineHeight, 2.5); assert.equal(bad.width, 1080); assert.equal(bad.format, 'png');
 assert.equal(C.normalize({ image: '/api/appearance/background/abcdef012345.png' }).image, '/api/appearance/background/abcdef012345.png');
-console.log('通过：五套模板、中文逐句选择、emoji 换行、完整单张长图、独白斜体分段与独立配色。');
+console.log('通过：七套模板、中文逐句选择、emoji 换行、完整单张长图、独白斜体分段与独立配色。');

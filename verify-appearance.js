@@ -14,6 +14,8 @@ const builtInBackgrounds = [
   { file: path.join(__dirname, 'public', 'backgrounds', 'frost-1.jpg'), url: '/backgrounds/frost-1.jpg' },
   { file: path.join(__dirname, 'public', 'backgrounds', 'frost-2.jpg'), url: '/backgrounds/frost-2.jpg' },
   { file: path.join(__dirname, 'public', 'backgrounds', 'frost-3.jpg'), url: '/backgrounds/frost-3.jpg' },
+  { file: path.join(__dirname, 'public', 'backgrounds', 'letter-1.jpg'), url: '/backgrounds/letter-1.jpg' },
+  { file: path.join(__dirname, 'public', 'backgrounds', 'pixel-1.jpg'), url: '/backgrounds/pixel-1.jpg' },
 ];
 for (const item of builtInBackgrounds) {
   const bytes = fs.readFileSync(item.file);
@@ -27,9 +29,11 @@ assert.deepEqual(mappedBuiltIns, builtInBackgrounds.map(item => item.url).sort()
 let imageFile;
 try {
   const settings = appearance.defaults();
-  assert.equal(appearance.themes.length, 6);
+  assert.equal(appearance.themes.length, 8);
   assert(settings.presets[0].css.includes('09｜角色气泡'));
   assert(settings.presets[0].css.includes('17｜手机排版'));
+  assert(settings.presets[0].css.includes('18｜游玩邀约'));
+  assert(settings.presets[0].css.includes('19｜桌游战报'));
   settings.presets.push({ id: 'custom', name: '我的气泡', css: '.bubble { border-radius: 25px; }' });
   settings.theme = 'mist'; settings.customCssEnabled = true; settings.activePresetId = 'custom';
   const image = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a1x8AAAAASUVORK5CYII=', 'base64');
@@ -53,7 +57,7 @@ try {
   assert.throws(() => appearance.normalize({ ...settings, presets: [settings.presets[0], settings.presets[0]] }), /重复/);
   assert.throws(() => saveBackground(directory, Buffer.from('not an image')), /图片/);
   assert.throws(() => backgroundFile(directory, '/api/appearance/background/../config.json'), /无效/);
-  console.log('通过：六套主题、注释模板、多份 CSS 保存与切换、背景上传去重、原有配置保留。');
+  console.log('通过：八套主题、注释模板、多份 CSS 保存与切换、背景上传去重、原有配置保留。');
 } finally {
   if (fs.existsSync(filename)) fs.unlinkSync(filename);
   if (imageFile && fs.existsSync(imageFile)) {

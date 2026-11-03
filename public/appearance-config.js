@@ -21,6 +21,12 @@
     { id: 'frost', name: '冷淡玻璃', description: '雾灰留白 · 透明气泡', scheme: 'light', colors: {
       ink: '#3d4448', muted: '#8d969c', accent: '#6f8a7c', accentInk: '#ffffff', paper: '#f9fafa', canvas: '#eef1f1', panel: '#f5f6f6', line: '#e3e7e9', bubble: '#fbfcfc', user: '#dfe9e2', hover: '#eceff0', input: '#f7f8f8', thought: '#f1e6eb', thoughtInk: '#8f6f7d', watch: '#e3ebf6', watchInk: '#5f7898', pat: '#f3ede6', patInk: '#92775f', mark: '#f1e3b8',
     } },
+    { id: 'letter', name: '复古信笺', description: '泛黄信纸 · 钢笔墨迹', scheme: 'light', colors: {
+      ink: '#4a3426', muted: '#9a8470', accent: '#9b3d32', accentInk: '#fffaf0', paper: '#fbf3e2', canvas: '#f1e5cc', panel: '#f6ecd6', line: '#e3d3b4', bubble: '#fdf7ea', user: '#f7e7a8', hover: '#f1e4c8', input: '#fdf8ec', thought: '#efe8dc', thoughtInk: '#7d6d5c', watch: '#f7e9e2', watchInk: '#9b3d32', pat: '#f9ece4', patInk: '#a0473b', mark: '#f3d98c',
+    } },
+    { id: 'pixel', name: '像素游戏', description: '复古 RPG · 像素对话框', scheme: 'light', colors: {
+      ink: '#2b2f4a', muted: '#7a7f9c', accent: '#3b4a8a', accentInk: '#fffbea', paper: '#fffbea', canvas: '#f3eed6', panel: '#f8f3dc', line: '#d9d1ad', bubble: '#2f3557', user: '#bfe8cf', hover: '#efe7c4', input: '#fffdf2', thought: '#fffbea', thoughtInk: '#4d5378', watch: '#2f3557', watchInk: '#ffd76a', pat: '#ffd9de', patInk: '#b33a55', mark: '#ffe58a',
+    } },
     { id: 'midnight', name: '墨夜星光', description: '深色夜读 · 冷月微光', scheme: 'dark', colors: {
       ink: '#dce5ee', muted: '#92a3b5', accent: '#9bbfda', accentInk: '#172430', paper: '#19232e', canvas: '#131c26', panel: '#1d2935', line: '#344353', bubble: '#243240', user: '#304759', hover: '#2b3c4c', input: '#202e3b', thought: '#302d43', thoughtInk: '#c3b5da', watch: '#233c3a', watchInk: '#a0c9bc', pat: '#3d342b', patInk: '#d4b38b', mark: '#665638',
     } },
@@ -144,6 +150,28 @@ mark { /* background: #f5d9a0; */ }
   :root { --custom-avatar-size: 28px; }
   .messages[data-mode] .bubble { padding: 12px 14px; }
 }
+
+/* 18｜游玩邀约：群聊里“行安 邀请你玩桌球”之类的小条 */
+.game-invite {
+  border-radius: 999px;             /* 小条圆角，0 是直角 */
+  /* background: #fff1e8; */         /* 小条底色 */
+  /* color: #a56f4e; */              /* 小条文字颜色 */
+}
+.game-invite-icon { border-radius: 50%; /* background: #fbe3d3; */ }  /* 左侧游戏图标的底座 */
+.game-invite-text strong { /* color: #57414c; */ }  /* 邀请人和游戏名 */
+
+/* 19｜桌游战报：台球、吹牛骰子、斗地主的结算卡片 */
+.game-result-card {
+  border-radius: 14px;              /* 整张卡片的圆角 */
+  /* background: #fffafc; */         /* 卡片底色 */
+}
+.game-result-heading { /* border-bottom-color: #efdee6; */ }  /* 标题行和下方的分隔线 */
+.game-result-badge { border-radius: 50%; /* background: #f6dfeb; */ }  /* ♣ ♠ 🎱 徽章底座 */
+.game-result-title { font-size: 14px; }   /* “台球战报”等标题 */
+.game-result-scope { /* color: #9a7e89; */ }  /* 右侧“第 2 局 / 本场结算” */
+.game-result-outcome { font-size: 15px; /* color: #a85d7c; */ }  /* 谁赢了 */
+.game-result-detail { font-size: 13px; }  /* 比分、每人输赢等明细 */
+.game-result-note { /* color: #9a7e89; */ }  /* 最下面的灰色备注 */
 `;
 
   function themeVariables(id) {

@@ -37,12 +37,12 @@ function saveBackupPreferences(filename, config, settings) {
   return normalized;
 }
 
-function normalizeDisplayPreferences({ mode = 'plain', userSide = 'right', showUserName = true, showUserAvatar = true, showCharacterAvatar = true, hideSystemMessages = false, collapseMonitorScreenshots = true } = {}) {
+function normalizeDisplayPreferences({ mode = 'plain', userSide = 'right', showUserName = true, showUserAvatar = true, showCharacterAvatar = true, hideSystemMessages = false, showGameCards = true, collapseMonitorScreenshots = true } = {}) {
   if (!['plain', 'markdown', 'novel'].includes(mode)) throw new Error('请选择有效的阅读样式');
   if (!['left', 'right'].includes(userSide)) throw new Error('请选择你的发言位置');
-  if ([showUserName, showUserAvatar, showCharacterAvatar, hideSystemMessages, collapseMonitorScreenshots].some(value => typeof value !== 'boolean')) throw new Error('请选择有效的显示选项');
+  if ([showUserName, showUserAvatar, showCharacterAvatar, hideSystemMessages, showGameCards, collapseMonitorScreenshots].some(value => typeof value !== 'boolean')) throw new Error('请选择有效的显示选项');
   // 仅保存显示选项，切换阅读样式不会改写数据库中的原始 Markdown。
-  return { mode, userSide, showUserName, showUserAvatar, showCharacterAvatar, hideSystemMessages, collapseMonitorScreenshots };
+  return { mode, userSide, showUserName, showUserAvatar, showCharacterAvatar, hideSystemMessages, showGameCards, collapseMonitorScreenshots };
 }
 
 function saveDisplayPreferences(filename, config, settings) {

@@ -5,9 +5,21 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { DatabaseSync } = require('node:sqlite');
 const { normalizeBackupPreferences } = require('./preferences');
-const { SYSTEM_SPEAKERS, isSystemMessage } = require('./public/message-display');
+const { SYSTEM_SPEAKERS, GAME_TYPES, isHiddenMessage } = require('./public/message-display');
 const { theaterSql } = require('./theater');
 const systemSpeakersSql = SYSTEM_SPEAKERS.map(speaker => "'" + speaker + "'").join(', ');
+const gameAttachmentSql = column => GAME_TYPES.map(type => `COALESCE(${column}, '') LIKE '%"${type}"%'`).join(' OR ');
+
+// 系统消息和桌游卡片分开过滤；附件只做粗筛，页面再用 gameCard 精确判断。
+function systemFilterSql(speaker, attachments, { hideSystemMessages = false, showGameCards = true } = {}) {
+  const system = `${speaker} IN (${systemSpeakersSql})`;
+  if (!attachments) return hideSystemMessages ? `NOT ${system}` : '';
+  const game = `(${gameAttachmentSql(attachments)})`;
+  if (hideSystemMessages && showGameCards) return `NOT (${system} AND NOT ${game})`;
+  if (hideSystemMessages) return `NOT ${system}`;
+  if (!showGameCards) return `NOT (${system} AND ${game})`;
+  return '';
+}
 
 function readJson(filename) {
   try { return JSON.parse(fs.readFileSync(filename, 'utf8').replace(/^\uFEFF/, '')); }
@@ -104,11 +116,12 @@ class ChatStore {
     return message;
   }
 
-  messages({ source, id, anchor, direction, cursor, position = 'latest', limit = 80, hideSystemMessages = false }) {
+  messages({ source, id, anchor, direction, cursor, position = 'latest', limit = 80, hideSystemMessages = false, showGameCards = true }) {
     const { table, parent, speaker, orderColumn = 'created_at' } = this.table(source);
     if (source === 'theater') limit = Math.min(limit, 10);
     // 在翻页前过滤系统记录，避免整批都是隐藏消息时出现空白页面或漏掉正常对话。
-    const where = `${parent} = ?` + (hideSystemMessages ? ` AND ${speaker} NOT IN (${systemSpeakersSql})` : '');
+    const filter = systemFilterSql(speaker, source === 'theater' ? null : 'attachments', { hideSystemMessages, showGameCards });
+    const where = `${parent} = ?` + (filter ? ` AND ${filter}` : '');
     const select = `SELECT *, ${speaker} AS speaker FROM ${table} WHERE ${where}`;
     const metadata = this.db.prepare(`SELECT COUNT(*) AS count, MIN(created_at) AS first_at, MAX(created_at) AS last_at FROM ${table} WHERE ${where}`).get(id);
     // 目录覆盖整本故事，不受正文分页限制；只返回章节名称和 ID，不复制正文或大纲。
@@ -122,7 +135,7 @@ class ChatStore {
       const half = Math.floor(limit / 2);
       const older = this.db.prepare(`${select} AND (${orderColumn}, id) < (?, ?) ORDER BY ${orderColumn} DESC, id DESC LIMIT ?`).all(id, target[orderColumn], target.id, half);
       const newer = this.db.prepare(`${select} AND (${orderColumn}, id) > (?, ?) ORDER BY ${orderColumn} ASC, id ASC LIMIT ?`).all(id, target[orderColumn], target.id, half);
-      rows = [...older.reverse(), ...(hideSystemMessages && isSystemMessage(target) ? [] : [target]), ...newer];
+      rows = [...older.reverse(), ...(isHiddenMessage(this.serialize(target), { hideSystemMessages, showGameCards }) ? [] : [target]), ...newer];
     } else if (cursor && (direction === 'older' || direction === 'newer')) {
       // 必须使用 (时间, ID) 复合游标。只按时间翻页会遗漏同一时间的其他消息。
       if (!Array.isArray(cursor) || cursor.length !== 2 || !Number.isFinite(cursor[0]) || typeof cursor[1] !== 'string') throw new Error('无效的翻页位置');
@@ -147,7 +160,7 @@ class ChatStore {
     };
   }
 
-  search({ query, source, id, kind, cursor, limit = 50, hideSystemMessages = false }) {
+  search({ query, source, id, kind, cursor, limit = 50, hideSystemMessages = false, showGameCards = true }) {
     query = String(query || '').trim();
     if (!query) return { items: [], hasMore: false, nextCursor: null };
     if (query.length > 500) throw new Error('搜索文字请控制在 500 字以内');
@@ -155,7 +168,8 @@ class ChatStore {
     const theater = theaterSql(this.db);
     const conditions = [];
     const parameters = theater ? [like, like, like] : [like, like];
-    if (hideSystemMessages) conditions.push(`speaker NOT IN (${systemSpeakersSql})`);
+    const filter = systemFilterSql('speaker', 'attachments', { hideSystemMessages, showGameCards });
+    if (filter) conditions.push(filter);
     if (source && id) {
       this.table(source);
       conditions.push('source = ? AND conversation_id = ?');
@@ -176,24 +190,29 @@ class ChatStore {
     const rows = this.db.prepare(`
       WITH hits AS (
         SELECT m.id, 'aion' AS source, 'aion' AS kind, m.conv_id AS conversation_id,
-          m.role AS speaker, m.content, m.created_at, c.title, NULL AS chapter_number, NULL AS chapter_title
+          m.role AS speaker, m.content, m.attachments, m.created_at, c.title, NULL AS chapter_number, NULL AS chapter_title
         FROM messages m LEFT JOIN conversations c ON c.id = m.conv_id
         WHERE COALESCE(m.content, '') LIKE ? ESCAPE '\\'
         UNION ALL
         SELECT m.id, 'room' AS source,
           CASE WHEN r.type = 'connor_1v1' THEN 'connor' ELSE 'group' END AS kind,
-          m.room_id AS conversation_id, m.sender AS speaker, m.content, m.created_at, r.title, NULL AS chapter_number, NULL AS chapter_title
+          m.room_id AS conversation_id, m.sender AS speaker, m.content, m.attachments, m.created_at, r.title, NULL AS chapter_number, NULL AS chapter_title
         FROM chatroom_messages m LEFT JOIN chatroom_rooms r ON r.id = m.room_id
         WHERE COALESCE(m.content, '') LIKE ? ESCAPE '\\'
         ${theater ? `UNION ALL
           SELECT t.id, 'theater', 'theater', t.conversation_id,
-            t.speaker, t.content, t.created_at, t.title, t.chapter_number, t.chapter_title
+            t.speaker, t.content, NULL, t.created_at, t.title, t.chapter_number, t.chapter_title
           FROM (${theater}) t WHERE t.content LIKE ? ESCAPE '\\'` : ''}
       )
       SELECT * FROM hits ${where}
       ORDER BY created_at DESC, source DESC, id DESC LIMIT ?
     `).all(...parameters, limit + 1);
-    const items = rows.slice(0, limit);
+    // 搜索结果带上附件，页面才能认出桌游卡片并按开关过滤。
+    const items = rows.slice(0, limit).map(row => {
+      let attachments = [];
+      try { attachments = JSON.parse(row.attachments || '[]'); } catch {}
+      return { ...row, attachments: Array.isArray(attachments) ? attachments : [] };
+    });
     const last = items.at(-1);
     return { items, hasMore: rows.length > limit, nextCursor: last ? [last.created_at, last.source, last.id] : null };
   }

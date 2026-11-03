@@ -179,6 +179,8 @@ const ViewerCards = (() => {
       const button = document.createElement('button'); button.className = 'card-template'; button.dataset.template = template.id; button.setAttribute('aria-label', template.name); button.setAttribute('aria-pressed', 'false');
       const sample = document.createElement('span'); sample.className = 'card-template-sample'; sample.textContent = '摘句';
       sample.style.background = template.cover === 'top' ? `linear-gradient(145deg,${template.colors[0]} 0%,${template.colors[1]} 52%,${template.bg} 52%)` : template.bg; sample.style.color = template.ink;
+      if (template.id === 'letter') sample.style.background = `repeating-linear-gradient(transparent 0 11px,#8a6a4233 11px 12px),${template.bg}`;
+      if (template.id === 'pixel') sample.style.boxShadow = 'inset 0 0 0 3px #2b2f4a, inset 0 -9px 0 3px #a9dcbc';
       const info = document.createElement('span'); info.className = 'card-template-info'; const name = document.createElement('strong'), note = document.createElement('small'); name.textContent = template.name; note.textContent = template.note; info.append(name, note); button.append(sample, info);
       button.addEventListener('click', () => {
         const old = settings;

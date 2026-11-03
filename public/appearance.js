@@ -7,6 +7,8 @@ window.ViewerAppearance = (() => {
     { path: '/backgrounds/frost-1.jpg', name: '枝影窗光' },
     { path: '/backgrounds/frost-2.jpg', name: '雾面水光' },
     { path: '/backgrounds/frost-3.jpg', name: '纱影叠纸' },
+    { path: '/backgrounds/letter-1.jpg', name: '旧信纸' },
+    { path: '/backgrounds/pixel-1.jpg', name: '像素晴空' },
   ];
   const get = id => document.getElementById(id);
   const clone = value => JSON.parse(JSON.stringify(value));
