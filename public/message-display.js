@@ -30,9 +30,65 @@
     };
   }
 
-  const GAME_TYPES = ['mini_game_invite', 'billiards_result', 'table_game_result', 'doudizhu_result', 'rps_result'];
+  const GAME_TYPES = ['mini_game_invite', 'billiards_result', 'table_game_result', 'doudizhu_result', 'rps_result', 'rps_invite', 'composition'];
   const RPS_HANDS = { 石头: '✊', 剪刀: '✌️', 布: '🖐️' };
   const plain = value => typeof value === 'string' || typeof value === 'number' ? String(value).trim() : '';
+  const finiteNumber = value => typeof value === 'number' && Number.isFinite(value) ? value : null;
+
+  function legacyRows(card, ddz) {
+    const rows = [], extra = [];
+    const lines = Array.isArray(card?.lines) ? card.lines : (ddz && Array.isArray(card?.walletLines) ? card.walletLines : []);
+    for (const raw of lines) {
+      const line = plain(raw);
+      const match = line.match(/^(.*)：本场 ([+−-]?\d+(?:\.\d+)?) (元|分|筹码)(?: · (?:收桌余额|剩余) (.*))?$/)
+        || line.match(/^(.*) ([+−-]?\d+(?:\.\d+)?) (元)$/);
+      if (!match) { if (line) extra.push(line); continue; }
+      const delta = Number(match[2].replace('−', '-'));
+      rows.push({ name: match[1], net: `${match[2]} ${match[3]}`, balance: match[4] || '—', delta, won: undefined });
+    }
+    return { rows, extra };
+  }
+
+  function scoreboard(card) {
+    const ddz = card.type === 'doudizhu_result';
+    const hasRows = Array.isArray(card.rows) && card.rows.length > 0;
+    const legacy = hasRows ? { rows: [], extra: [] } : legacyRows(card, ddz);
+    const sourceRows = hasRows ? card.rows : legacy.rows;
+    const rows = sourceRows.map(row => {
+      const delta = finiteNumber(row?.delta);
+      return {
+        name: plain(row?.name) || plain(row?.actor) || '玩家',
+        net: plain(row?.net) || (delta === null ? '' : String(delta)),
+        balance: row?.balance == null ? null : (plain(row.balance) || '—'),
+        delta,
+        won: typeof row?.won === 'boolean' ? row.won : undefined,
+      };
+    });
+    const deltas = rows.filter(row => row.delta !== null).map(row => row.delta);
+    const best = deltas.length ? Math.max(...deltas) : 0;
+    for (const row of rows) if (typeof row.won !== 'boolean') row.won = row.delta !== null && row.delta > 0 && (ddz || row.delta === best);
+    rows.sort((a, b) => Number(b.won) - Number(a.won));
+    const extra = hasRows ? [] : [...legacy.extra];
+    if (ddz && !hasRows) {
+      if (plain(card.winnerName) || plain(card.landlordName)) extra.push(`先出完：${plain(card.winnerName) || '—'} · 地主：${plain(card.landlordName) || '—'}`);
+      if (plain(card.remaining)) extra.push(`剩余手牌：${plain(card.remaining)}`);
+    }
+    const outcome = plain(card.outcome);
+    if (!rows.length && !extra.length && !outcome) return null;
+    const title = ddz ? '斗地主战报' : `${plain(card.title) || '游戏'}战报`;
+    return {
+      kind: 'scoreboard',
+      badge: ddz ? '♠' : plain(card.title) === '吹牛骰子' ? '⚄' : '♣',
+      title,
+      scope: ddz ? '本局结算' : card.scope === 'table' ? '本场结算' : `第 ${plain(card.round) || '?'} 轮`,
+      outcome,
+      netLabel: plain(card.netLabel) || '本场盈亏',
+      balanceLabel: plain(card.balanceLabel) || (ddz ? '剩余手牌' : '收桌余额'),
+      rows,
+      extra,
+      note: plain(card.note) || (ddz ? '按本局阵营结算 · 用户金额仅记本桌' : ''),
+    };
+  }
 
   // 群聊桌游系统消息：只读取附件里的结构化字段；缺关键字段时返回 null，界面回退为原文显示。
   function gameCard(message) {
@@ -44,32 +100,27 @@
       const game = plain(invite.game);
       return { kind: 'invite', icon: game === '桌球' ? '🎱' : game === '吹牛骰子' ? '🎲' : '🃏', actor: plain(invite.actor_name) || 'AI', game };
     }
+    const rpsInvite = find('rps_invite');
+    if (rpsInvite && (plain(rpsInvite.topic) || content)) {
+      const match = content.match(/^(.+?)邀请你猜拳/);
+      return { kind: 'invite', icon: '✊', actor: plain(rpsInvite.actor_name) || match?.[1]?.trim() || 'AI', game: '猜拳', topic: plain(rpsInvite.topic) };
+    }
+    const composition = find('composition');
+    if (composition && plain(composition.title)) return { kind: 'composition', actor: plain(composition.actor_name) || 'AI', title: plain(composition.title), bpm: finiteNumber(composition.bpm) };
     const pool = find('billiards_result');
-    if (pool && Array.isArray(pool.players) && pool.players.length === 2) {
+    if (pool && Array.isArray(pool.players) && pool.players.length === 2 && [0, 1].includes(pool.winner)) {
       const names = pool.players.map(player => plain(player?.name) || '玩家');
       const lines = content.split('\n').map(line => line.trim()).filter(Boolean);
-      const winner = names[pool.winner];
-      const outcome = winner ? `${winner} 获胜 · ${names[1 - pool.winner]} 落败` : lines[1] || '';
-      if (!outcome) return null;
-      const details = [];
-      if (Array.isArray(pool.score) && pool.score.length === 2) details.push(`累计胜局：${names[0]} ${plain(pool.score[0])} : ${plain(pool.score[1])} ${names[1]}`);
-      const shots = [Number.isFinite(pool.shots) ? `本局共 ${pool.shots} 杆` : '', plain(pool.reason)].filter(Boolean).join(' · ');
-      if (shots) details.push(shots);
-      const rack = Number.isFinite(pool.rack) ? `第 ${pool.rack} 局` : '本局';
-      return { kind: 'result', badge: '🎱', title: '台球战报', scope: pool.match_complete ? rack + ' · 整场结束' : rack, outcome, details, note: pool.match_complete ? lines.find(line => line.includes('整场结束')) || '' : '' };
+      const winner = pool.winner, loser = 1 - winner;
+      const score = Array.isArray(pool.score) && pool.score.length === 2 && pool.score.every(value => typeof value === 'number' && Number.isFinite(value))
+        ? `${pool.score[winner]} : ${pool.score[loser]}` : '';
+      const rack = finiteNumber(pool.rack);
+      return { kind: 'duel', badge: '🎱', title: '台球战报', scope: rack === null ? '对局结束' : `第 ${rack} 局${pool.match_complete ? ' · 整场结束' : ''}`, winner: { name: names[winner] }, loser: { name: names[loser] }, score, shots: finiteNumber(pool.shots), reason: plain(pool.reason), legal: plain(pool.reason).startsWith('合法'), note: pool.match_complete ? lines.find(line => line.includes('整场结束')) || '' : '' };
     }
     const table = find('table_game_result');
-    if (table && plain(table.title) && plain(table.outcome)) {
-      return { kind: 'result', badge: '♣', title: plain(table.title) + '战报', scope: table.scope === 'table' ? '本场结算' : `第 ${plain(table.round) || '?'} 轮`, outcome: plain(table.outcome), details: (Array.isArray(table.lines) ? table.lines : []).map(plain).filter(Boolean), note: plain(table.note) };
-    }
+    if (table && plain(table.title)) return scoreboard(table);
     const landlord = find('doudizhu_result');
-    if (landlord && plain(landlord.outcome)) {
-      const wallet = (Array.isArray(landlord.walletLines) ? landlord.walletLines : []).map(plain).filter(Boolean);
-      const details = [];
-      if (plain(landlord.winnerName) || plain(landlord.landlordName)) details.push(`先出完：${plain(landlord.winnerName) || '?'} · 地主：${plain(landlord.landlordName) || '?'}`);
-      if (plain(landlord.remaining)) details.push('剩余手牌：' + plain(landlord.remaining));
-      return { kind: 'result', badge: '♠', title: '斗地主战报', scope: '本局结算', outcome: plain(landlord.outcome), details, note: wallet.length ? '零钱结算：' + wallet.join(' · ') : '' };
-    }
+    if (landlord) return scoreboard(landlord);
     const rps = find('rps_result');
     if (rps && content) {
       const topic = plain(rps.topic);

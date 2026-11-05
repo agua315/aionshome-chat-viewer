@@ -160,19 +160,26 @@ mark { /* background: #f5d9a0; */ }
 .game-invite-icon { border-radius: 50%; /* background: #fbe3d3; */ }  /* 左侧游戏图标的底座 */
 .game-invite-text strong { /* color: #57414c; */ }  /* 邀请人和游戏名 */
 
-/* 19｜桌游战报：台球、吹牛骰子、斗地主的结算卡片 */
-.game-result-card {
-  border-radius: 14px;              /* 整张卡片的圆角 */
-  /* background: #fffafc; */         /* 卡片底色 */
-}
-.game-result-heading { /* border-bottom-color: #efdee6; */ }  /* 标题行和下方的分隔线 */
-.game-result-badge { border-radius: 50%; /* background: #f6dfeb; */ }  /* ♣ ♠ 🎱 徽章底座 */
-.game-result-title { font-size: 14px; }   /* “台球战报”等标题 */
-.game-result-scope { /* color: #9a7e89; */ }  /* 右侧“第 2 局 / 本场结算” */
-.game-result-outcome { font-size: 15px; /* color: #a85d7c; */ }  /* 谁赢了 */
-.game-result-detail { font-size: 13px; }  /* 比分、每人输赢等明细 */
-.game-result-note { /* color: #9a7e89; */ }  /* 最下面的灰色备注 */
-`;
+/* 19｜桌游战报：对阵卡和计分表的主要可改项 */
+.game-report { border-radius: 14px; /* 整张战报卡片的圆角 */ /* background: #fffafc; */ /* 卡片底色 */ }
+.game-report-heading { /* border-bottom-color: #efdee6; */ } /* 标题行分隔线 */
+.game-report-badge { border-radius: 50%; /* background: #f6dfeb; */ } /* 🎱 ♣ ♠ 徽章 */
+.game-report-title { font-size: 14px; } /* 战报标题 */
+.game-report-scope { /* color: #9a7e89; */ } /* 第几局或结算范围 */
+.game-duel { /* gap: 12px; */ } /* 台球左右对阵区 */
+.game-duel-vs { /* color: #a85d7c; */ } /* 中间 VS */
+.game-duel-shots strong { font-size: 26px; } /* 杆数大字 */
+.game-score-table th, .game-score-table td { /* border-bottom-color: #efdee6; */ } /* 计分表细线 */
+.game-score-win { /* background: #fff3c4; */ } /* 赢家行底色 */
+.is-positive { /* color: #7b9d70; */ } /* 正数 */
+.is-negative { /* color: #b56d68; */ } /* 负数 */
+.game-report-extra, .game-report-note { /* color: #9a7e89; */ } /* 原文行和备注 */
+
+/* 20｜小曲卡片：AI 写歌的只读提示 */
+.game-composition { border-radius: 14px; /* 小曲卡片圆角 */ /* background: #fffafc; */ /* 卡片底色 */ }
+.game-composition-icon { border-radius: 50%; /* background: #f6dfeb; */ } /* 🎵 图标底座 */
+.game-composition-text strong { font-size: 14px; } /* 曲名 */
+.game-composition-meta { /* color: #9a7e89; */ } /* BPM 和播放提示 */`;
 
   function themeVariables(id) {
     const theme = themes.find(item => item.id === id) || themes[0];

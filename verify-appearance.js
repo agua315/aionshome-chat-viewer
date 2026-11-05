@@ -34,6 +34,7 @@ try {
   assert(settings.presets[0].css.includes('17｜手机排版'));
   assert(settings.presets[0].css.includes('18｜游玩邀约'));
   assert(settings.presets[0].css.includes('19｜桌游战报'));
+  assert(settings.presets[0].css.includes('20｜小曲卡片'));
   settings.presets.push({ id: 'custom', name: '我的气泡', css: '.bubble { border-radius: 25px; }' });
   settings.theme = 'mist'; settings.customCssEnabled = true; settings.activePresetId = 'custom';
   const image = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a1x8AAAAASUVORK5CYII=', 'base64');

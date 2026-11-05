@@ -397,6 +397,20 @@ function renderGameCard(game) {
     const icon = node('span', 'game-invite-icon', game.icon); icon.setAttribute('aria-hidden', 'true');
     const text = node('span', 'game-invite-text');
     text.append(strong('', game.actor), document.createTextNode(' 邀请你玩 '), strong('', game.game));
+    if (game.topic) {
+      card.title = '约定：' + game.topic;
+      text.append(node('span', 'game-invite-topic', '约定：' + game.topic));
+    }
+    card.append(icon, text);
+    return card;
+  }
+  if (game.kind === 'composition') {
+    const card = node('div', 'game-composition');
+    card.title = `${game.actor} 写了一首《${game.title}》`;
+    const icon = node('span', 'game-composition-icon', '🎵'); icon.setAttribute('aria-hidden', 'true');
+    const text = node('span', 'game-composition-text');
+    text.append(node('small', '', `${game.actor} 写了一首`), strong('', `《${game.title}》`));
+    text.append(node('span', 'game-composition-meta', `${game.bpm === null ? '' : game.bpm + ' BPM · '}在 AionsHome 小音乐盒里播放`));
     card.append(icon, text);
     return card;
   }
@@ -407,15 +421,59 @@ function renderGameCard(game) {
     card.append(node('span', 'game-rps-label', '猜拳'), text);
     return card;
   }
-  const card = node('div', 'game-result-card');
-  const heading = node('div', 'game-result-heading');
-  const badge = node('span', 'game-result-badge', game.badge); badge.setAttribute('aria-hidden', 'true');
-  heading.append(badge, strong('game-result-title', game.title), node('span', 'game-result-scope', game.scope));
+  const card = node('div', 'game-report');
+  const heading = node('div', 'game-report-heading');
+  const badge = node('span', 'game-report-badge', game.badge); badge.setAttribute('aria-hidden', 'true');
+  heading.append(badge, strong('game-report-title', game.title), node('span', 'game-report-scope', game.scope));
   card.append(heading);
-  const line = (className, text) => { const item = node('p', className); item.append(highlighted(text)); card.append(item); };
-  line('game-result-outcome', game.outcome);
-  for (const detail of game.details) line('game-result-detail', detail);
-  if (game.note) line('game-result-note', game.note);
+  if (game.kind === 'duel') {
+    const duel = node('div', 'game-duel');
+    const side = (player, winner) => {
+      const item = node('div', 'game-duel-side ' + (winner ? 'is-winner' : 'is-loser'));
+      item.append(winner ? node('span', 'game-duel-crown', '👑') : node('span', 'game-duel-crown-spacer'));
+      item.append(strong('', player.name), node('span', 'game-duel-label', winner ? '获胜' : '落败'));
+      return item;
+    };
+    duel.append(side(game.winner, true), node('span', 'game-duel-vs', 'VS'), side(game.loser, false));
+    card.append(duel);
+    if (game.score) card.append(node('div', 'game-duel-score', '累计比分：' + game.score));
+    const finish = node('div', 'game-duel-finish');
+    const shots = node('div', 'game-duel-shots');
+    if (game.shots === null) shots.append(node('strong', '', '—'));
+    else shots.append(node('strong', '', String(game.shots)));
+    shots.append(node('span', '', '杆'));
+    const reason = node('div', 'game-duel-reason');
+    reason.append(node('span', 'game-duel-reason-icon' + (game.legal ? ' is-legal' : ''), game.legal ? '✓' : 'ⓘ'), node('span', '', game.reason || ''));
+    finish.append(shots, reason); card.append(finish);
+    if (game.note) card.append(node('p', 'game-report-note', game.note));
+    return card;
+  }
+  const summary = node('p', 'game-report-summary'); summary.append(highlighted(game.outcome || '')); card.append(summary);
+  if (game.kind === 'scoreboard') {
+    const wrap = node('div', 'game-score-wrap');
+    const table = node('table', 'game-score-table');
+    const head = node('thead'); const headRow = node('tr');
+    const hasBalance = game.rows.some(row => row.balance && row.balance !== '—');
+    headRow.append(node('th', '', '玩家'), node('th', '', game.netLabel));
+    if (hasBalance) headRow.append(node('th', '', game.balanceLabel));
+    head.append(headRow); table.append(head);
+    const body = node('tbody');
+    for (const row of game.rows) {
+      const tr = node('tr', row.won ? 'game-score-win' : '');
+      const player = node('th');
+      if (row.won) player.append(node('span', 'game-score-crown', '👑'));
+      player.append(strong('', row.name));
+      if (row.won) player.append(node('span', 'game-score-win-tag', '获胜'));
+      const tone = row.delta > 0 ? 'is-positive' : row.delta < 0 ? 'is-negative' : 'is-neutral';
+      tr.append(player, node('td', tone, row.net || '—'));
+      if (hasBalance) tr.append(node('td', '', row.balance || '—'));
+      body.append(tr);
+    }
+    table.append(body); wrap.append(table); card.append(wrap);
+    for (const extra of game.extra) card.append(node('p', 'game-report-extra', extra));
+    if (game.note) { const note = node('p', 'game-report-note'); note.append(node('span', 'game-report-note-icon', '👛'), node('span', '', game.note)); card.append(note); }
+    return card;
+  }
   return card;
 }
 
